@@ -18,11 +18,14 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -37,7 +40,6 @@ public class MainActivity extends AppCompatActivity
 
     private static final float MIN_FLING_DISTANCE = 200.0f;
     private static final float MAX_FLING_DISTANCE = 1000.0f;
-
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
@@ -67,6 +69,49 @@ public class MainActivity extends AppCompatActivity
         }
 
         rand = new Random();
+    }
+
+    public void onClickeCapition(View view){
+        Button saveButton = (Button)findViewById(R.id.button_save_id);
+        saveButton.setVisibility(view.VISIBLE);
+        EditText text1 = (EditText)findViewById(R.id.edit_text1);
+        text1.setVisibility(view.VISIBLE);
+    }
+
+    public void saveCaption(View view){
+        File path = new File(directory);
+        if (path.exists()) {
+            filenames = path.list();
+        }
+        /*File myFile = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), getPackageName());*/
+
+        String comment = ((EditText) findViewById(R.id.edit_text1)).getText().toString();
+        String timeStamp = new SimpleDateFormat("yyyMMdd_HHmmss", Locale.ENGLISH).format(new Date());
+        //File exifVar =  new File(directory.getPath(), "IMG_" + timeStamp + ".jpg");
+        File myFile = new File(currentPhotoPath);
+        Uri uri;
+        InputStream in;
+        try{
+            //in = getContentResolver().openInputStream(uri);
+            ExifInterface exif = new ExifInterface(myFile.getCanonicalPath());
+            //exif.readExif(exifVar.getAbsolutePath());
+            exif.setAttribute(ExifInterface.TAG_USER_COMMENT, comment);
+            exif.saveAttributes();
+
+
+            // Context context = getApplicationContext();
+            CharSequence text = exif.getAttribute(ExifInterface.TAG_USER_COMMENT);
+
+            ((TextView) findViewById(R.id.text_view_id23)).setText(text);
+//            int duration = Toast.LENGTH_SHORT;
+//
+//            Toast toast = Toast.makeText(context, text, duration);
+//            toast.show();
+        }catch(Exception e){
+
+        }
+
     }
 
     public void onWindowFocusChanged(boolean hasFocus) {
