@@ -8,4 +8,8 @@
     <string name="tagSearchPrompt">Search by Keyword</string>
     <string name="searchDatePromptFrom">From</string>
     <string name="searchDatepromptTo">To</string>
+    <string name="Tag">Add Tags</string>
+    <string name="TagOK">Set</string>
+    <string name="TagCancel">Cancel</string>
+    <string name="TagDescription">Associate your pics with tags here. This will make searching easier!</string>
 </resources>

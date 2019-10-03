@@ -1,5 +1,7 @@
 package com.example.comp7082.comp7082photogallery;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -40,6 +42,8 @@ public class MainActivity extends AppCompatActivity
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
     static final int REQUEST_IMAGE_SEARCH = 2;
+    static final int REQUEST_SET_TAG = 3;
+
     public String currentPhotoPath;
     public ImageView imageView;
     public Bitmap bitmap;
@@ -142,6 +146,25 @@ public class MainActivity extends AppCompatActivity
             currentPhotoPath = directory + filenames[currentIndex];
             createPicture(currentPhotoPath);
             imageView.setImageBitmap(bitmap);
+
+        }
+
+
+        if (requestCode ==REQUEST_SET_TAG && resultCode == RESULT_OK){
+
+            System.out.println("back from tagg ctivity");
+            System.out.println(data.getExtras().getString( "tag" ));
+
+            try{
+
+                ExifInterface exif_tag;
+                exif_tag = new ExifInterface(currentPhotoPath);
+                exif_tag.setAttribute("TAG_MAKER_NOTE", data.getExtras().getString( "tag" )); // or "ImageDescription"
+                exif_tag.saveAttributes();
+
+            }catch(IOException io){
+                io.printStackTrace();
+            }
 
         }
     }
@@ -300,6 +323,46 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLongPress(MotionEvent motionEvent) {
+
+    }
+
+    public void addTag(View view) {
+
+        //check if image was taken
+        //allow tags only if image is taken
+        //else if show message
+        //Toast.makeText( this, "photo path" + currentIndex, Toast.LENGTH_SHORT ).show();
+
+
+        //System.out.println(filenames[currentIndex]);
+
+        if(filenames != null){
+
+            //send current image's name to next activity
+
+            Intent tagIntent = new Intent( MainActivity.this, addTag.class );
+            tagIntent.putExtra( "FileName", filenames[currentIndex] );
+            startActivityForResult( tagIntent , REQUEST_SET_TAG );
+        }else{
+
+
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+            builder1.setMessage("Please take a pic first.");
+            builder1.setCancelable(true);
+
+            builder1.setPositiveButton(
+                    "ok",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+
+            AlertDialog alert11 = builder1.create();
+            alert11.show();
+        }
+
+
 
     }
 }
