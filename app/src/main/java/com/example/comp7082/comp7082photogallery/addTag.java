@@ -26,7 +26,7 @@ public class addTag extends AppCompatActivity {
 
         int width = dm.widthPixels;
         int height = dm.heightPixels;
-        getWindow().setLayout( (int)(width *.8),(int)(height* .3) );
+        getWindow().setLayout( (int)(width *.8),(int)(height* .4) );
         intent = getIntent();
         fileName= intent.getStringExtra( "FileName" );
         System.out.println("from the second activity "+fileName);
