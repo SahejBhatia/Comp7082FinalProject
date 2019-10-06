@@ -1,13 +1,12 @@
 package com.example.comp7082.comp7082photogallery;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.ExifInterface;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
@@ -17,6 +16,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,7 +25,6 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -35,8 +34,9 @@ public class MainActivity extends AppCompatActivity
     implements GestureDetector.OnGestureListener
 {
     // Tag names for Intent Extra Info
-    public static final String EXTRA_PHOTO_LIST = "com.example.comp7082.comp7082photogallery.PHOTO_LIST";
     public static final String EXTRA_CURRENT_INDEX = "com.example.comp7082.comp7082photogallery.CURRENT_INDEX";
+    public static final String EXTRA_KEYWORDS_TAG = "com.example.comp7082.comp7082photogallery.KEYWORDS_TAG";
+    public static final String EXTRA_PHOTO_LIST = "com.example.comp7082.comp7082photogallery.PHOTO_LIST";
 
     private static final float MIN_FLING_DISTANCE = 200.0f;
     private static final float MAX_FLING_DISTANCE = 1000.0f;
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity
     public String[] filenames;
 
     private GestureDetector gestureScanner;
-    private Random rand;
+//    private Random rand;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,54 +65,54 @@ public class MainActivity extends AppCompatActivity
 
         getFilenames(directory);
         if(filenames != null && filenames.length > 0) {
-            currentPhotoPath = directory + filenames[currentIndex];
+            currentPhotoPath = getCurrentFilePath();
         }
 
-        rand = new Random();
+//        rand = new Random();
     }
 
-    public void onClickeCapition(View view){
-        Button saveButton = (Button)findViewById(R.id.button_save_id);
-        saveButton.setVisibility(view.VISIBLE);
+    public void onClickCaption(View view){
+        toggleCaptionEditVisibility(View.VISIBLE);
+
+        // populate caption from file
         EditText text1 = (EditText)findViewById(R.id.edit_text1);
-        text1.setVisibility(view.VISIBLE);
+        File myFile = new File(currentPhotoPath);
+        text1.setText(ExifUtility.getExifTagString(myFile, ExifUtility.EXIF_CAPTION_TAG));
+
+//        Button saveButton = (Button)findViewById(R.id.button_save_id);
+//        saveButton.setVisibility(View.VISIBLE);
+//        text1.setVisibility(View.VISIBLE);
     }
 
     public void saveCaption(View view){
-        File path = new File(directory);
-        if (path.exists()) {
-            filenames = path.list();
-        }
-        /*File myFile = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), getPackageName());*/
-
         String comment = ((EditText) findViewById(R.id.edit_text1)).getText().toString();
-        String timeStamp = new SimpleDateFormat("yyyMMdd_HHmmss", Locale.ENGLISH).format(new Date());
-        //File exifVar =  new File(directory.getPath(), "IMG_" + timeStamp + ".jpg");
-        File myFile = new File(currentPhotoPath);
-        Uri uri;
-        InputStream in;
-        try{
-            //in = getContentResolver().openInputStream(uri);
-            ExifInterface exif = new ExifInterface(myFile.getCanonicalPath());
-            //exif.readExif(exifVar.getAbsolutePath());
-            exif.setAttribute(ExifInterface.TAG_USER_COMMENT, comment);
-            exif.saveAttributes();
 
+        hideSoftKeyboard();
+        if (currentPhotoPath != null && !currentPhotoPath.isEmpty()) {
+            File myFile = new File(currentPhotoPath);
+            ExifUtility.setExifTagString(myFile, ExifUtility.EXIF_CAPTION_TAG, comment);
 
-            // Context context = getApplicationContext();
-            CharSequence text = exif.getAttribute(ExifInterface.TAG_USER_COMMENT);
-
-            ((TextView) findViewById(R.id.text_view_id23)).setText(text);
-//            int duration = Toast.LENGTH_SHORT;
-//
-//            Toast toast = Toast.makeText(context, text, duration);
-//            toast.show();
-        }catch(Exception e){
-
+            CharSequence text = ExifUtility.getExifTagString(myFile, ExifUtility.EXIF_CAPTION_TAG);
+            ((TextView) findViewById(R.id.currentImageCaptionTextView)).setText(text);
         }
-
+        else {
+            // no current photo to caption - clear text
+            ((TextView) findViewById(R.id.edit_text1)).setText("");
+        }
+        toggleCaptionEditVisibility(View.INVISIBLE);
+//        int duration = Toast.LENGTH_SHORT;
+//
+//        Toast toast = Toast.makeText(context, text, duration);
+//        toast.show();
     }
+
+    private void toggleCaptionEditVisibility(int viewVisibility) {
+        Button saveButton = (Button)findViewById(R.id.button_save_id);
+        saveButton.setVisibility(viewVisibility);
+        EditText text1 = (EditText)findViewById(R.id.edit_text1);
+        text1.setVisibility(viewVisibility);
+    }
+
 
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
@@ -122,6 +122,10 @@ public class MainActivity extends AppCompatActivity
                 imageView.setImageBitmap(bitmap);
             }
         }
+    }
+
+    private String getCurrentFilePath() {
+        return directory + filenames[currentIndex];
     }
 
     private void getFilenames(String directory){
@@ -164,22 +168,8 @@ public class MainActivity extends AppCompatActivity
             // update gallery list
             getFilenames(directory);
             currentIndex = filenames.length - 1;
-
-            // exif data test
-            // search development use - needs to be removed once tag functionality is in place
-            try {
-                String mString = getCommentTags();
-                ExifInterface exif;
-                exif = new ExifInterface(currentPhotoPath);
-                exif.setAttribute("UserComment", mString); // or "ImageDescription"
-                exif.setAttribute("ImageDescription", filenames[currentIndex]); // or "ImageDescription"
-                exif.saveAttributes();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // end test
-
         }
+
         if (requestCode == REQUEST_IMAGE_SEARCH && resultCode == RESULT_OK) {
             filenames = data.getStringArrayExtra(MainActivity.EXTRA_PHOTO_LIST);
 
@@ -188,29 +178,19 @@ public class MainActivity extends AppCompatActivity
             }
             currentIndex = 0;
 
-            currentPhotoPath = directory + filenames[currentIndex];
+            currentPhotoPath = getCurrentFilePath();
             createPicture(currentPhotoPath);
             imageView.setImageBitmap(bitmap);
-
         }
 
+        if (requestCode == REQUEST_SET_TAG && resultCode == RESULT_OK){
 
-        if (requestCode ==REQUEST_SET_TAG && resultCode == RESULT_OK){
+            System.out.println("back from tag activity");
+            System.out.println(data.getExtras().getString( EXTRA_KEYWORDS_TAG ));
 
-            System.out.println("back from tagg ctivity");
-            System.out.println(data.getExtras().getString( "tag" ));
-
-            try{
-
-                ExifInterface exif_tag;
-                exif_tag = new ExifInterface(currentPhotoPath);
-                exif_tag.setAttribute("TAG_MAKER_NOTE", data.getExtras().getString( "tag" )); // or "ImageDescription"
-                exif_tag.saveAttributes();
-
-            }catch(IOException io){
-                io.printStackTrace();
-            }
-
+            Log.d("onActivityResult", "dataExtra: " + data.getExtras().getString( EXTRA_KEYWORDS_TAG ));
+            File currentFile = new File(currentPhotoPath);
+            ExifUtility.setExifTagString(currentFile, ExifUtility.EXIF_KEYWORDS_TAG, data.getExtras().getString( EXTRA_KEYWORDS_TAG ));
         }
     }
 
@@ -250,16 +230,26 @@ public class MainActivity extends AppCompatActivity
         bmOptions.inSampleSize = scaleFactor;
 
         bitmap = BitmapFactory.decodeFile(filepath, bmOptions);
+
+        // retrieve the caption for the new image
+        getCaptionFromImageFile(currentPhotoPath);
+    }
+
+    private void getCaptionFromImageFile(String photoPath) {
+        // retrieve the caption for the new image
+        File currentFile = new File(photoPath);
+        String currentFileCaption = ExifUtility.getExifTagString(currentFile, ExifUtility.EXIF_CAPTION_TAG);
+        ((TextView)findViewById(R.id.currentImageCaptionTextView)).setText((currentFileCaption == null ? "" : currentFileCaption));
     }
 
     // Search methods
     public void openSearchOnClick(View view){
         Intent intent = new Intent(this, SearchActivity.class);
         getFilenames(directory);    // ensure we send the whole list each time
+
         intent.putExtra(EXTRA_PHOTO_LIST, filenames);
         intent.putExtra(EXTRA_CURRENT_INDEX, currentIndex);
         startActivityForResult(intent, REQUEST_IMAGE_SEARCH);
-
     }
 
     @Override
@@ -330,21 +320,22 @@ public class MainActivity extends AppCompatActivity
         imageView.setImageBitmap(bitmap);
     }
 
+
     // development method only
     // search development use - needs to be removed once tag functionality is in place
-    private String getCommentTags() {
-        String[] words = { "stove", "sink", "dog", "books", "kitchen", "dishwasher", "table", "chairs", "tv"};
-        String tags = "";
-        int stop = rand.nextInt(3) + 1;
-
-        for (int i = 0; i < stop ; i ++) {
-            tags += words[rand.nextInt(words.length)];
-            if (i < stop -1) {
-                tags += " ";
-            }
-        }
-        return tags;
-    }
+//    private String getCommentTags() {
+//        String[] words = { "stove", "sink", "dog", "books", "kitchen", "dishwasher", "table", "chairs", "tv"};
+//        String tags = "";
+//        int stop = rand.nextInt(3) + 1;
+//
+//        for (int i = 0; i < stop ; i ++) {
+//            tags += words[rand.nextInt(words.length)];
+//            if (i < stop -1) {
+//                tags += " ";
+//            }
+//        }
+//        return tags;
+//    }
 
     @Override
     public boolean onDown(MotionEvent motionEvent) {
@@ -358,6 +349,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onSingleTapUp(MotionEvent motionEvent) {
+        // possibly show file date and time in a Toast popup
         return false;
     }
 
@@ -377,20 +369,19 @@ public class MainActivity extends AppCompatActivity
         //allow tags only if image is taken
         //else if show message
         //Toast.makeText( this, "photo path" + currentIndex, Toast.LENGTH_SHORT ).show();
-
-
         //System.out.println(filenames[currentIndex]);
 
-        if(filenames != null){
+        if(filenames != null) {
 
             //send current image's name to next activity
 
             Intent tagIntent = new Intent( MainActivity.this, addTag.class );
             tagIntent.putExtra( "FileName", filenames[currentIndex] );
+            File currentFile = new File(currentPhotoPath);
+
+            tagIntent.putExtra( EXTRA_KEYWORDS_TAG, ExifUtility.getExifTagString(currentFile, ExifUtility.EXIF_KEYWORDS_TAG) );
             startActivityForResult( tagIntent , REQUEST_SET_TAG );
-        }else{
-
-
+        } else {
             AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
             builder1.setMessage("Please take a pic first.");
             builder1.setCancelable(true);
@@ -406,8 +397,18 @@ public class MainActivity extends AppCompatActivity
             AlertDialog alert11 = builder1.create();
             alert11.show();
         }
-
-
-
     }
+
+    /*
+     * hide the soft keyboard if it is displayed
+     */
+    private void hideSoftKeyboard() {
+        // Check if no view has focus:
+        View mview = this.getCurrentFocus();
+        if (mview != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(mview.getWindowToken(), 0);
+        }
+    }
+
 }

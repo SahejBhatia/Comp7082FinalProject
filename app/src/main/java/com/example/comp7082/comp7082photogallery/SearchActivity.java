@@ -12,14 +12,10 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -39,7 +35,7 @@ public class SearchActivity extends AppCompatActivity {
     String[] sourceFilenames;   // the list of image filenames from MainActivity
     String[] filterFilenames;   // the list of image filenames returned to MainActivity
     int currentIndex;
-    String fileUserComment = null;  // the keyword tags
+    String fileKeywordTags = null;  // the keyword tags
     Date fileCreateDate = null;
     Date fileCreateTime = null;
 
@@ -154,8 +150,8 @@ public class SearchActivity extends AppCompatActivity {
 
             // create keywords list from image file
             List<String> imageCommentKeywordsList = new ArrayList<>();
-            if (fileUserComment != null && !fileUserComment.isEmpty()) {
-                imageCommentKeywordsList = Arrays.asList(fileUserComment.split(" "));
+            if (fileKeywordTags != null && !fileKeywordTags.isEmpty()) {
+                imageCommentKeywordsList = Arrays.asList(fileKeywordTags.split(" "));
             }
 
             // for each user keyword, search the image keywords and save the filename of any that are found
@@ -215,19 +211,20 @@ public class SearchActivity extends AppCompatActivity {
 
         try {
             String path = directory + imageFileName;
+            File localFile = new File(path);
             ExifInterface exif = new ExifInterface(path);
 
-            fileUserComment = exif.getAttribute(ExifInterface.TAG_USER_COMMENT); // resolves to a String
+            fileKeywordTags = ExifUtility.getExifTagString(localFile, ExifUtility.EXIF_KEYWORDS_TAG);
             //String fileImageDescription = exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION); // resolves to a String
 
             String[] fileNameTokens =  imageFileName.split("_");    // parse the date and time from the filename
             fileCreateDate = dateFormatIn.parse(fileNameTokens[1]);
             fileCreateTime = timeFormatIn.parse(fileNameTokens[2]);
 
-            // if (fileUserComment == null) { fileUserComment = "*null*"; }
+            // if (fileKeywordTags == null) { fileKeywordTags = "*null*"; }
             //if (fileImageDescription == null) { fileImageDescription = "*null*"; }
 
-            Log.d("getImageFileData", "Load UserComment: " + (fileUserComment == null ? "is null" : fileUserComment));
+            Log.d("getImageFileData", "Load UserComment: " + (fileKeywordTags == null ? "is null" : fileKeywordTags));
             //Log.d("getImageFileData", "Load ImageDescription: " + fileImageDescription);
             Log.d("getImageFileData", "Parsed Date: " + dateFormatOut.format(fileCreateDate) + " Time: " + timeFormatOut.format(fileCreateTime));
             Log.d("getImageFileData", "Load Date?: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
