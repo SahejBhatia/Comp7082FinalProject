@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Comp7082PhotoGallery</string>
+    <string name="searchText">Search</string>
+    <string name="searchTextHint">Enter keyword to find</string>
+    <string name="dateSearchTextHint">yyyy/MM/dd</string>
+    <string name="timeSearchTextHint">hh:mm:ss</string>
+    <string name="searchDatePrompt">Search by Date and Time</string>
+    <string name="tagSearchPrompt">Search by Keyword</string>
+    <string name="searchDatePromptFrom">From</string>
+    <string name="searchDatepromptTo">To</string>
+    <string name="Tag">Add Tags</string>
+    <string name="TagOK">Set</string>
+    <string name="TagCancel">Cancel</string>
+    <string name="TagDescription">Associate your pics with tags here. This will make searching easier!</string>
 </resources>
