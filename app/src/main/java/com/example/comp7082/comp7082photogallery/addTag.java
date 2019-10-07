@@ -27,10 +27,12 @@ public class addTag extends AppCompatActivity {
         int width = dm.widthPixels;
         int height = dm.heightPixels;
         getWindow().setLayout( (int)(width *.8),(int)(height* .4) );
-        intent = getIntent();
-        fileName= intent.getStringExtra( "FileName" );
-        System.out.println("from the second activity "+fileName);
 
+        intent = getIntent();
+//        fileName= intent.getStringExtra( "FileName" );
+//        System.out.println("from the second activity "+fileName);
+        String givenTags = intent.getStringExtra( MainActivity.EXTRA_KEYWORDS_TAG );
+        tag.setText(givenTags);
 
 
     }
@@ -52,18 +54,13 @@ public class addTag extends AppCompatActivity {
                     });
             AlertDialog alert11 = builder1.create();
             alert11.show();
-
-
         }else{
         //sending back tag
 
-            intent.putExtra("tag", tag.getText().toString());
+            intent.putExtra(MainActivity.EXTRA_KEYWORDS_TAG, tag.getText().toString());
             setResult(RESULT_OK, intent);
             finish();
-
         }
-
-
     }
 
     public void CancelTag(View view) {
