@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.LocationListener;
 import android.location.Location;
 import android.location.LocationManager;
@@ -34,13 +36,13 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity
-    implements GestureDetector.OnGestureListener,
-        LocationListener
-{
+        implements GestureDetector.OnGestureListener,
+        LocationListener {
     // Tag names for Intent Extra Info
     public static final String EXTRA_CURRENT_INDEX = "com.example.comp7082.comp7082photogallery.CURRENT_INDEX";
     public static final String EXTRA_KEYWORDS_TAG = "com.example.comp7082.comp7082photogallery.KEYWORDS_TAG";
@@ -48,6 +50,9 @@ public class MainActivity extends AppCompatActivity
 
     private static final float MIN_FLING_DISTANCE = 200.0f;
     private static final float MAX_FLING_DISTANCE = 1000.0f;
+    public static final int NAVIGATE_RIGHT = 1;
+    public static final int NAVIGATE_LEFT = -1;
+
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
@@ -55,6 +60,7 @@ public class MainActivity extends AppCompatActivity
     static final int REQUEST_SET_TAG = 3;
 
     public String currentPhotoPath;
+    private TextView imageIndexTextView;
     public ImageView imageView;
     public Bitmap bitmap;
     public int currentIndex = 0;
@@ -63,21 +69,26 @@ public class MainActivity extends AppCompatActivity
 
     private GestureDetector gestureScanner;
     private LocationManager locationManager;
+    //private Location cachedLocation;
+
 //    private Random rand;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        imageIndexTextView = findViewById(R.id.imageIndexTextView);
+
         gestureScanner = new GestureDetector(getBaseContext(), this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         imageView = findViewById(R.id.imageView);
 
         getFilenames(directory);
-        if(filenames != null && filenames.length > 0) {
+        if (filenames != null && filenames.length > 0) {
             currentPhotoPath = getCurrentFilePath();
         }
+
 
 //        rand = new Random();
     }
@@ -85,27 +96,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED)
-        {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 1, this);
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    1);
-        }
+        enableLocationUpdates();
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED)
-        {
-            locationManager.removeUpdates(this);
-        }
+        disableLocationUpdates();
     }
 
     public void onClickCaption(View view){
@@ -148,6 +146,9 @@ public class MainActivity extends AppCompatActivity
         saveButton.setVisibility(viewVisibility);
         EditText text1 = (EditText)findViewById(R.id.edit_text1);
         text1.setVisibility(viewVisibility);
+        if (viewVisibility != View.VISIBLE) {
+            text1.setText("");  // ensure to clear it out
+        }
     }
 
 
@@ -175,6 +176,10 @@ public class MainActivity extends AppCompatActivity
 
     public void onSnapClicked(View view){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        toggleCaptionEditVisibility(View.INVISIBLE);
+        //enableLocationUpdates();    // begin scanning for location upon taking a photo
+        Log.d("onSnapClicked", "Begin capturing a photo");
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             File photoFile;
             try {
@@ -185,13 +190,7 @@ public class MainActivity extends AppCompatActivity
                         Toast.LENGTH_SHORT).show();
                 return;
             }
-            TextView captionTextView = (TextView)findViewById(R.id.text_view_id23);
-            captionTextView.setText("");
-            EditText text1 = (EditText)findViewById(R.id.edit_text1);
-            text1.setText("");
-            Button saveButton = (Button)findViewById(R.id.button_save_id);
-            saveButton.setVisibility(View.INVISIBLE);
-            text1.setVisibility(View.INVISIBLE);
+
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
@@ -208,11 +207,13 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             createPicture(currentPhotoPath);
             imageView.setImageBitmap(bitmap);
+            //disableLocationUpdates();   // end scanning for location once photo is saved
 
             // update gallery list
             getFilenames(directory);
             currentIndex = filenames.length - 1;
             getPhotoLocation();
+            Log.d("onActivityResult", "Finished request image capture");
         }
 
         if (requestCode == REQUEST_IMAGE_SEARCH && resultCode == RESULT_OK) {
@@ -278,6 +279,7 @@ public class MainActivity extends AppCompatActivity
 
         // retrieve the caption for the new image
         getCaptionFromImageFile(currentPhotoPath);
+        updateImageIndexText();
     }
 
     private void getCaptionFromImageFile(String photoPath) {
@@ -287,8 +289,21 @@ public class MainActivity extends AppCompatActivity
         ((TextView)findViewById(R.id.currentImageCaptionTextView)).setText((currentFileCaption == null ? "" : currentFileCaption));
     }
 
+    private void updateImageIndexText() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(currentIndex+1);
+        if (filenames.length > 0) {
+            sb.append(" of ");
+            sb.append(filenames.length);
+        }
+        imageIndexTextView.setText(sb.toString());
+    }
+
     // Search methods
     public void openSearchOnClick(View view){
+        toggleCaptionEditVisibility(View.INVISIBLE);
+
         Intent intent = new Intent(this, SearchActivity.class);
         getFilenames(directory);    // ensure we send the whole list each time
 
@@ -320,20 +335,15 @@ public class MainActivity extends AppCompatActivity
         Log.d("Fling, deltaXAbs = ", Float.toString(deltaXAbs));
         Log.d("Fling, deltaYAbs = ", Float.toString(deltaYAbs));
         if ((deltaXAbs >= MIN_FLING_DISTANCE) && (deltaXAbs <= MAX_FLING_DISTANCE)) {
-            EditText text1 = (EditText)findViewById(R.id.edit_text1);
-            text1.setText("");
-            Button saveButton = (Button)findViewById(R.id.button_save_id);
-            saveButton.setVisibility(View.INVISIBLE);
-            text1.setVisibility(View.INVISIBLE);
             if (deltaX > 0) {
                 // left swipe - so scrolling to the right
                 Log.d("Fling, SWIPE LEFT","!");
-                scrollGallery(1); // scroll right
+                scrollGallery(NAVIGATE_RIGHT); // scroll right
             }
             else {
                 // right swipe - so scrolling to the left
                 Log.d("Fling, SWIPE RIGHT","!");
-                scrollGallery(-1);  // scroll left
+                scrollGallery(NAVIGATE_LEFT);  // scroll left
             }
         }
         return true;
@@ -342,11 +352,11 @@ public class MainActivity extends AppCompatActivity
     // direction parameter should be an enum
     private void scrollGallery(int direction) {
         switch (direction) {
-            case -1:    // left
+            case NAVIGATE_LEFT:     // left
                 Log.d("scrollGallery :", "Scroll Left");
                 --currentIndex;
                 break;
-            case 1:     // right
+            case NAVIGATE_RIGHT:    // right
                 Log.d("scrollGallery :", "Scroll Right");
                 ++currentIndex;
                 break;
@@ -368,36 +378,7 @@ public class MainActivity extends AppCompatActivity
         Log.d("scrollGallery :", "currentPhotoPath = " + currentPhotoPath);
         createPicture(currentPhotoPath);
         imageView.setImageBitmap(bitmap);
-        File myFile = new File(currentPhotoPath);
-
-        try {
-
-            ExifInterface exif = new ExifInterface(myFile.getCanonicalPath());
-
-            // Context context = getApplicationContext();
-            CharSequence text = exif.getAttribute(ExifInterface.TAG_USER_COMMENT);
-            ((TextView) findViewById(R.id.text_view_id23)).setText(text);
-        } catch(Exception e){
-
-        }
     }
-
-
-    // development method only
-    // search development use - needs to be removed once tag functionality is in place
-//    private String getCommentTags() {
-//        String[] words = { "stove", "sink", "dog", "books", "kitchen", "dishwasher", "table", "chairs", "tv"};
-//        String tags = "";
-//        int stop = rand.nextInt(3) + 1;
-//
-//        for (int i = 0; i < stop ; i ++) {
-//            tags += words[rand.nextInt(words.length)];
-//            if (i < stop -1) {
-//                tags += " ";
-//            }
-//        }
-//        return tags;
-//    }
 
     @Override
     public boolean onDown(MotionEvent motionEvent) {
@@ -440,10 +421,24 @@ public class MainActivity extends AppCompatActivity
 
         File currentFile = new File(currentPhotoPath);
         if (ExifUtility.getExifLatLong(currentFile, location)) {
+            String city = "";
             float latitude = location[0];
             float longitude = location[1];
             Log.d("getPhotoLocation", "File location: lat: " + latitude + " long: " + longitude);
-            Toast.makeText(this, "Location: lat: " + latitude + " long: " + longitude, Toast.LENGTH_LONG).show();
+
+            Geocoder geo = new Geocoder(this);
+            try {
+                List<Address> addressList = geo.getFromLocation(latitude, longitude, 1);
+                for (Address addr : addressList) {
+                    city = addr.getLocality();
+                    Log.d("getPhotoLocation", "addr: " + addr.getLocality());
+                }
+            } catch (IOException e) {
+                Log.d("getPhotoLocation", "geo IOException " + e.getMessage());
+            }
+            Toast.makeText(this,
+                    "Location: lat: " + latitude + " long: " + longitude + (city.isEmpty() ? "" : "\n" + city),
+                    Toast.LENGTH_LONG).show();
         }
         else {
             Log.d("getPhotoLocation", "File location: not retrieved");
@@ -505,11 +500,42 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-//        TextView tvLat = (TextView) findViewById(R.id.tvLat);
-//        TextView tvLng = (TextView) findViewById(R.id.tvLng);
-//        tvLat.setText(String.valueOf(location.getLatitude()));
-//        tvLng.setText(String.valueOf(location.getLongitude()));
+        Log.d("onLocationChanged","@@@ Location: lat[" + location.getLatitude()+ "] long[" + location.getLongitude()+ "]");
 
+        // experimental: get the location name from a gps location
+        Geocoder geo = new Geocoder(this);
+        String city= "Vancouver BC";
+        try {
+            List<Address> addressList = geo.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+            for (Address addr : addressList) {
+                Log.d("onLocationChanged", "addr1: " + addr.getLocality());
+                city = addr.getLocality();
+            }
+
+            // experimental: get the gps location from a location name
+            city= "10 downing st london";
+            if (city == null) {
+                Log.d("onLocationChanged", "TESTNOW: " + (city == null ? "is null" : city));
+
+            }
+            else {
+                Log.d("onLocationChanged", "TESTNOW: " + (city == null ? "is null" : city));
+                addressList = geo.getFromLocationName(city, 4);
+                for (Address addr : addressList) {
+                    Log.d("onLocationChanged", "By locationname: " +
+                            addr.getCountryName() + "\n" +
+                            addr.getLocality() + "\n" +
+                            addr.getSubLocality() + "\n" +
+                            addr.getThoroughfare() + "\n" +
+                            addr.getSubThoroughfare() + "\n" +
+                            addr.getPostalCode() + "\n\n" +
+                            addr.getLatitude() + " " + addr.getLongitude()
+                    );
+                }
+            }
+        } catch (IOException e) {
+            Log.d("onLocationChanged", "geo IOException " + e.getMessage());
+        }
     }
 
     @Override
@@ -538,4 +564,31 @@ public class MainActivity extends AppCompatActivity
                 locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         }
     }
+
+    private void enableLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED)
+        {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 1, this);
+            //cachedLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Log.d("enableLocationUpdates","Begin accepting location updates");
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+            Log.d("enableLocationUpdates","Request FINE location permission");
+        }
+    }
+
+    private void disableLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED)
+        {
+            locationManager.removeUpdates(this);
+            Log.d("disableLocationUpdates","End accepting location updates");
+        }
+    }
+
 }
