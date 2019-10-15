@@ -21,4 +21,8 @@
     <string name="longitudePrompt">Longitude</string>
     <string name="gpsLatitudeTextHint">00.000000</string>
     <string name="gpsLongitudeTextHint">000.000000</string>
+    <string name="camerabutton">cameraButton</string>
+    <string name="imageview">imageView</string>
+    <string name="captionSave">Save</string>
+    <string name="captionButtonText">Caption</string>
 </resources>

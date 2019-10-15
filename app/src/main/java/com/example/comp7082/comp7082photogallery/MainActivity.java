@@ -50,6 +50,9 @@ public class MainActivity extends AppCompatActivity
 
     private static final float MIN_FLING_DISTANCE = 200.0f;
     private static final float MAX_FLING_DISTANCE = 1000.0f;
+    public static final int NAVIGATE_RIGHT = 1;
+    public static final int NAVIGATE_LEFT = -1;
+
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
@@ -57,6 +60,7 @@ public class MainActivity extends AppCompatActivity
     static final int REQUEST_SET_TAG = 3;
 
     public String currentPhotoPath;
+    private TextView imageIndexTextView;
     public ImageView imageView;
     public Bitmap bitmap;
     public int currentIndex = 0;
@@ -73,6 +77,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        imageIndexTextView = findViewById(R.id.imageIndexTextView);
+
         gestureScanner = new GestureDetector(getBaseContext(), this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -140,6 +146,9 @@ public class MainActivity extends AppCompatActivity
         saveButton.setVisibility(viewVisibility);
         EditText text1 = (EditText)findViewById(R.id.edit_text1);
         text1.setVisibility(viewVisibility);
+        if (viewVisibility != View.VISIBLE) {
+            text1.setText("");  // ensure to clear it out
+        }
     }
 
 
@@ -168,6 +177,7 @@ public class MainActivity extends AppCompatActivity
     public void onSnapClicked(View view){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
+        toggleCaptionEditVisibility(View.INVISIBLE);
         //enableLocationUpdates();    // begin scanning for location upon taking a photo
         Log.d("onSnapClicked", "Begin capturing a photo");
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -180,13 +190,7 @@ public class MainActivity extends AppCompatActivity
                         Toast.LENGTH_SHORT).show();
                 return;
             }
-            TextView captionTextView = (TextView)findViewById(R.id.text_view_id23);
-            captionTextView.setText("");
-            EditText text1 = (EditText)findViewById(R.id.edit_text1);
-            text1.setText("");
-            Button saveButton = (Button)findViewById(R.id.button_save_id);
-            saveButton.setVisibility(View.INVISIBLE);
-            text1.setVisibility(View.INVISIBLE);
+
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
@@ -275,6 +279,7 @@ public class MainActivity extends AppCompatActivity
 
         // retrieve the caption for the new image
         getCaptionFromImageFile(currentPhotoPath);
+        updateImageIndexText();
     }
 
     private void getCaptionFromImageFile(String photoPath) {
@@ -284,8 +289,21 @@ public class MainActivity extends AppCompatActivity
         ((TextView)findViewById(R.id.currentImageCaptionTextView)).setText((currentFileCaption == null ? "" : currentFileCaption));
     }
 
+    private void updateImageIndexText() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(currentIndex+1);
+        if (filenames.length > 0) {
+            sb.append(" of ");
+            sb.append(filenames.length);
+        }
+        imageIndexTextView.setText(sb.toString());
+    }
+
     // Search methods
     public void openSearchOnClick(View view){
+        toggleCaptionEditVisibility(View.INVISIBLE);
+
         Intent intent = new Intent(this, SearchActivity.class);
         getFilenames(directory);    // ensure we send the whole list each time
 
@@ -317,20 +335,15 @@ public class MainActivity extends AppCompatActivity
         Log.d("Fling, deltaXAbs = ", Float.toString(deltaXAbs));
         Log.d("Fling, deltaYAbs = ", Float.toString(deltaYAbs));
         if ((deltaXAbs >= MIN_FLING_DISTANCE) && (deltaXAbs <= MAX_FLING_DISTANCE)) {
-            EditText text1 = (EditText)findViewById(R.id.edit_text1);
-            text1.setText("");
-            Button saveButton = (Button)findViewById(R.id.button_save_id);
-            saveButton.setVisibility(View.INVISIBLE);
-            text1.setVisibility(View.INVISIBLE);
             if (deltaX > 0) {
                 // left swipe - so scrolling to the right
                 Log.d("Fling, SWIPE LEFT","!");
-                scrollGallery(1); // scroll right
+                scrollGallery(NAVIGATE_RIGHT); // scroll right
             }
             else {
                 // right swipe - so scrolling to the left
                 Log.d("Fling, SWIPE RIGHT","!");
-                scrollGallery(-1);  // scroll left
+                scrollGallery(NAVIGATE_LEFT);  // scroll left
             }
         }
         return true;
@@ -339,11 +352,11 @@ public class MainActivity extends AppCompatActivity
     // direction parameter should be an enum
     private void scrollGallery(int direction) {
         switch (direction) {
-            case -1:    // left
+            case NAVIGATE_LEFT:     // left
                 Log.d("scrollGallery :", "Scroll Left");
                 --currentIndex;
                 break;
-            case 1:     // right
+            case NAVIGATE_RIGHT:    // right
                 Log.d("scrollGallery :", "Scroll Right");
                 ++currentIndex;
                 break;
@@ -365,36 +378,7 @@ public class MainActivity extends AppCompatActivity
         Log.d("scrollGallery :", "currentPhotoPath = " + currentPhotoPath);
         createPicture(currentPhotoPath);
         imageView.setImageBitmap(bitmap);
-        File myFile = new File(currentPhotoPath);
-
-        try {
-
-            ExifInterface exif = new ExifInterface(myFile.getCanonicalPath());
-
-            // Context context = getApplicationContext();
-            CharSequence text = exif.getAttribute(ExifInterface.TAG_USER_COMMENT);
-            ((TextView) findViewById(R.id.text_view_id23)).setText(text);
-        } catch(Exception e){
-
-        }
     }
-
-
-    // development method only
-    // search development use - needs to be removed once tag functionality is in place
-//    private String getCommentTags() {
-//        String[] words = { "stove", "sink", "dog", "books", "kitchen", "dishwasher", "table", "chairs", "tv"};
-//        String tags = "";
-//        int stop = rand.nextInt(3) + 1;
-//
-//        for (int i = 0; i < stop ; i ++) {
-//            tags += words[rand.nextInt(words.length)];
-//            if (i < stop -1) {
-//                tags += " ";
-//            }
-//        }
-//        return tags;
-//    }
 
     @Override
     public boolean onDown(MotionEvent motionEvent) {
@@ -410,7 +394,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onSingleTapUp(MotionEvent motionEvent) {
         // possibly show file date and time in a Toast popup
         displayPhotoTimeStamp();
-        //getPhotoLocation();
+        getPhotoLocation();
         return true;
     }
 
@@ -437,20 +421,24 @@ public class MainActivity extends AppCompatActivity
 
         File currentFile = new File(currentPhotoPath);
         if (ExifUtility.getExifLatLong(currentFile, location)) {
+            String city = "";
             float latitude = location[0];
             float longitude = location[1];
             Log.d("getPhotoLocation", "File location: lat: " + latitude + " long: " + longitude);
-            Toast.makeText(this, "Location: lat: " + latitude + " long: " + longitude, Toast.LENGTH_LONG).show();
 
             Geocoder geo = new Geocoder(this);
             try {
                 List<Address> addressList = geo.getFromLocation(latitude, longitude, 1);
                 for (Address addr : addressList) {
+                    city = addr.getLocality();
                     Log.d("getPhotoLocation", "addr: " + addr.getLocality());
                 }
             } catch (IOException e) {
                 Log.d("getPhotoLocation", "geo IOException " + e.getMessage());
             }
+            Toast.makeText(this,
+                    "Location: lat: " + latitude + " long: " + longitude + (city.isEmpty() ? "" : "\n" + city),
+                    Toast.LENGTH_LONG).show();
         }
         else {
             Log.d("getPhotoLocation", "File location: not retrieved");
