@@ -12,4 +12,13 @@
     <string name="TagOK">Set</string>
     <string name="TagCancel">Cancel</string>
     <string name="TagDescription">Associate your pics with tags here. This will make searching easier!</string>
+    <string name="addressPrompt">Search by Address Location</string>
+    <string name="addressLocationTextHint">Enter address to find</string>
+    <string name="gpsCoordPrompt">Search by a GPS Area</string>
+    <string name="gpsSWCoordPrompt">Enter Southwest Coordinate</string>
+    <string name="gpsNECoordPrompt">Enter Northeast Coordinate</string>
+    <string name="latitudePrompt">Latitude</string>
+    <string name="longitudePrompt">Longitude</string>
+    <string name="gpsLatitudeTextHint">00.000000</string>
+    <string name="gpsLongitudeTextHint">000.000000</string>
 </resources>

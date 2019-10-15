@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.LocationListener;
 import android.location.Location;
 import android.location.LocationManager;
@@ -34,13 +36,13 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity
-    implements GestureDetector.OnGestureListener,
-        LocationListener
-{
+        implements GestureDetector.OnGestureListener,
+        LocationListener {
     // Tag names for Intent Extra Info
     public static final String EXTRA_CURRENT_INDEX = "com.example.comp7082.comp7082photogallery.CURRENT_INDEX";
     public static final String EXTRA_KEYWORDS_TAG = "com.example.comp7082.comp7082photogallery.KEYWORDS_TAG";
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity
 
     private GestureDetector gestureScanner;
     private LocationManager locationManager;
+    //private Location cachedLocation;
+
 //    private Random rand;
 
     @Override
@@ -75,9 +79,10 @@ public class MainActivity extends AppCompatActivity
         imageView = findViewById(R.id.imageView);
 
         getFilenames(directory);
-        if(filenames != null && filenames.length > 0) {
+        if (filenames != null && filenames.length > 0) {
             currentPhotoPath = getCurrentFilePath();
         }
+
 
 //        rand = new Random();
     }
@@ -85,27 +90,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED)
-        {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 1, this);
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    1);
-        }
+        enableLocationUpdates();
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED)
-        {
-            locationManager.removeUpdates(this);
-        }
+        disableLocationUpdates();
     }
 
     public void onClickCaption(View view){
@@ -175,6 +167,9 @@ public class MainActivity extends AppCompatActivity
 
     public void onSnapClicked(View view){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        //enableLocationUpdates();    // begin scanning for location upon taking a photo
+        Log.d("onSnapClicked", "Begin capturing a photo");
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             File photoFile;
             try {
@@ -201,11 +196,13 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             createPicture(currentPhotoPath);
             imageView.setImageBitmap(bitmap);
+            //disableLocationUpdates();   // end scanning for location once photo is saved
 
             // update gallery list
             getFilenames(directory);
             currentIndex = filenames.length - 1;
             getPhotoLocation();
+            Log.d("onActivityResult", "Finished request image capture");
         }
 
         if (requestCode == REQUEST_IMAGE_SEARCH && resultCode == RESULT_OK) {
@@ -389,7 +386,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onSingleTapUp(MotionEvent motionEvent) {
         // possibly show file date and time in a Toast popup
         displayPhotoTimeStamp();
-        getPhotoLocation();
+        //getPhotoLocation();
         return true;
     }
 
@@ -420,6 +417,16 @@ public class MainActivity extends AppCompatActivity
             float longitude = location[1];
             Log.d("getPhotoLocation", "File location: lat: " + latitude + " long: " + longitude);
             Toast.makeText(this, "Location: lat: " + latitude + " long: " + longitude, Toast.LENGTH_LONG).show();
+
+            Geocoder geo = new Geocoder(this);
+            try {
+                List<Address> addressList = geo.getFromLocation(latitude, longitude, 1);
+                for (Address addr : addressList) {
+                    Log.d("getPhotoLocation", "addr: " + addr.getLocality());
+                }
+            } catch (IOException e) {
+                Log.d("getPhotoLocation", "geo IOException " + e.getMessage());
+            }
         }
         else {
             Log.d("getPhotoLocation", "File location: not retrieved");
@@ -481,11 +488,42 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-//        TextView tvLat = (TextView) findViewById(R.id.tvLat);
-//        TextView tvLng = (TextView) findViewById(R.id.tvLng);
-//        tvLat.setText(String.valueOf(location.getLatitude()));
-//        tvLng.setText(String.valueOf(location.getLongitude()));
+        Log.d("onLocationChanged","@@@ Location: lat[" + location.getLatitude()+ "] long[" + location.getLongitude()+ "]");
 
+        // experimental: get the location name from a gps location
+        Geocoder geo = new Geocoder(this);
+        String city= "Vancouver BC";
+        try {
+            List<Address> addressList = geo.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+            for (Address addr : addressList) {
+                Log.d("onLocationChanged", "addr1: " + addr.getLocality());
+                city = addr.getLocality();
+            }
+
+            // experimental: get the gps location from a location name
+            city= "10 downing st london";
+            if (city == null) {
+                Log.d("onLocationChanged", "TESTNOW: " + (city == null ? "is null" : city));
+
+            }
+            else {
+                Log.d("onLocationChanged", "TESTNOW: " + (city == null ? "is null" : city));
+                addressList = geo.getFromLocationName(city, 4);
+                for (Address addr : addressList) {
+                    Log.d("onLocationChanged", "By locationname: " +
+                            addr.getCountryName() + "\n" +
+                            addr.getLocality() + "\n" +
+                            addr.getSubLocality() + "\n" +
+                            addr.getThoroughfare() + "\n" +
+                            addr.getSubThoroughfare() + "\n" +
+                            addr.getPostalCode() + "\n\n" +
+                            addr.getLatitude() + " " + addr.getLongitude()
+                    );
+                }
+            }
+        } catch (IOException e) {
+            Log.d("onLocationChanged", "geo IOException " + e.getMessage());
+        }
     }
 
     @Override
@@ -514,4 +552,31 @@ public class MainActivity extends AppCompatActivity
                 locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         }
     }
+
+    private void enableLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED)
+        {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 1, this);
+            //cachedLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Log.d("enableLocationUpdates","Begin accepting location updates");
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    1);
+            Log.d("enableLocationUpdates","Request FINE location permission");
+        }
+    }
+
+    private void disableLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED)
+        {
+            locationManager.removeUpdates(this);
+            Log.d("disableLocationUpdates","End accepting location updates");
+        }
+    }
+
 }
