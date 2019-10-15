@@ -180,6 +180,13 @@ public class MainActivity extends AppCompatActivity
                         Toast.LENGTH_SHORT).show();
                 return;
             }
+            TextView captionTextView = (TextView)findViewById(R.id.text_view_id23);
+            captionTextView.setText("");
+            EditText text1 = (EditText)findViewById(R.id.edit_text1);
+            text1.setText("");
+            Button saveButton = (Button)findViewById(R.id.button_save_id);
+            saveButton.setVisibility(View.INVISIBLE);
+            text1.setVisibility(View.INVISIBLE);
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
@@ -310,6 +317,11 @@ public class MainActivity extends AppCompatActivity
         Log.d("Fling, deltaXAbs = ", Float.toString(deltaXAbs));
         Log.d("Fling, deltaYAbs = ", Float.toString(deltaYAbs));
         if ((deltaXAbs >= MIN_FLING_DISTANCE) && (deltaXAbs <= MAX_FLING_DISTANCE)) {
+            EditText text1 = (EditText)findViewById(R.id.edit_text1);
+            text1.setText("");
+            Button saveButton = (Button)findViewById(R.id.button_save_id);
+            saveButton.setVisibility(View.INVISIBLE);
+            text1.setVisibility(View.INVISIBLE);
             if (deltaX > 0) {
                 // left swipe - so scrolling to the right
                 Log.d("Fling, SWIPE LEFT","!");
@@ -353,6 +365,18 @@ public class MainActivity extends AppCompatActivity
         Log.d("scrollGallery :", "currentPhotoPath = " + currentPhotoPath);
         createPicture(currentPhotoPath);
         imageView.setImageBitmap(bitmap);
+        File myFile = new File(currentPhotoPath);
+
+        try {
+
+            ExifInterface exif = new ExifInterface(myFile.getCanonicalPath());
+
+            // Context context = getApplicationContext();
+            CharSequence text = exif.getAttribute(ExifInterface.TAG_USER_COMMENT);
+            ((TextView) findViewById(R.id.text_view_id23)).setText(text);
+        } catch(Exception e){
+
+        }
     }
 
 
