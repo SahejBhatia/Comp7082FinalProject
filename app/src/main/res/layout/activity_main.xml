@@ -50,13 +50,14 @@
 
     <TextView
         android:id="@+id/currentImageCaptionTextView"
-        android:layout_width="168dp"
+        android:layout_width="88dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="4dp"
         android:text=""
         android:textAlignment="viewStart"
         android:textSize="10sp"
+        android:onClick="ShareButton"
         app:layout_constraintBottom_toTopOf="@+id/imageView"
         app:layout_constraintEnd_toStartOf="@+id/button2"
         app:layout_constraintHorizontal_bias="0.5"
@@ -112,7 +113,7 @@
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
+        android:layout_marginEnd="148dp"
         android:onClick="addTag"
         android:text="@string/Tag"
         app:layout_constraintEnd_toEndOf="parent"
@@ -131,5 +132,16 @@
         android:textSize="10sp"
         app:layout_constraintEnd_toEndOf="@+id/imageView"
         app:layout_constraintTop_toBottomOf="@+id/button2" />
+
+    <ImageButton
+        android:id="@+id/imageButton2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:backgroundTint="#00F3ECEC"
+        android:onClick="ShareButton"
+        app:layout_constraintEnd_toEndOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/button2"
+        app:srcCompat="?attr/actionModeShareDrawable" />
 
 </android.support.constraint.ConstraintLayout>
