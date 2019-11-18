@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Comp7082PhotoGallery.iml" filepath="$PROJECT_DIR$/Comp7082PhotoGallery.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/Comp7082PhotoGallery-app.iml" filepath="$PROJECT_DIR$/app/Comp7082PhotoGallery-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Comp7082FinalProject.iml" filepath="$PROJECT_DIR$/Comp7082FinalProject.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/workspace-Comp7082PhotoGallery.iml" filepath="$PROJECT_DIR$/workspace-Comp7082PhotoGallery.iml" />
     </modules>
   </component>
 </project>
