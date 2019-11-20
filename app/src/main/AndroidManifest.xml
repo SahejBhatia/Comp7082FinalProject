@@ -6,12 +6,11 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-    <uses-feature
-        android:name="android.hardware.location.gps" />
+    <uses-feature android:name="android.hardware.location.gps" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -21,6 +20,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".Preview"></activity>
+        <activity android:name=".GalleryPreview" />
         <activity
             android:name=".SearchActivity"
             android:parentActivityName=".MainActivity">
@@ -48,12 +49,11 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".addTag"
+        <activity
+            android:name=".addTag"
             android:label="@string/Tag"
-            android:theme="@style/AppTheme.pop">
+            android:theme="@style/AppTheme.pop" />
 
-
-        </activity>
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

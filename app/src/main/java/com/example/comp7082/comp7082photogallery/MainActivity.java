@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.LocationListener;
@@ -27,10 +28,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +70,7 @@ public class MainActivity extends AppCompatActivity
     public int currentIndex = 0;
     public String directory = Environment.getExternalStorageDirectory() + "/Android/data/com.example.comp7082.comp7082photogallery/files/Pictures/";
     public String[] filenames;
-
+    public Switch toggle;
     private GestureDetector gestureScanner;
     private LocationManager locationManager;
     //private Location cachedLocation;
@@ -84,13 +88,40 @@ public class MainActivity extends AppCompatActivity
 
         imageView = findViewById(R.id.imageView);
 
+        toggle = findViewById( R.id.switch1 );
+
+        boolean swicthstate = toggle.isChecked();
+        Toast.makeText( this, "ischecked?" + swicthstate, Toast.LENGTH_SHORT ).show();
+
+        if (swicthstate){
+            toggle.setText( "Home" );
+            toggle.setTextColor( Color.MAGENTA );
+        }else{
+            toggle.setText( "Collections" );
+            toggle.setTextColor( Color.CYAN );
+        }
         getFilenames(directory);
         if (filenames != null && filenames.length > 0) {
             currentPhotoPath = getCurrentFilePath();
         }
 
+        if(toggle.isChecked()){
+            Toast.makeText( this, "this is checked", Toast.LENGTH_SHORT ).show();
+            Intent myIntent = new Intent(this, Preview.class);
+            startActivityForResult(myIntent, 0);
+        }
 
-//        rand = new Random();
+        //open up categories
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // do something, the isChecked will be
+                // true if the switch is in the On position
+                Toast.makeText( MainActivity.this, "status "+toggle.isChecked(), Toast.LENGTH_SHORT ).show();
+                Intent myIntent = new Intent(MainActivity.this , Preview.class);
+                startActivityForResult(myIntent, 0);
+
+            }
+        });
     }
 
     @Override

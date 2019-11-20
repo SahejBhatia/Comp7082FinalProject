@@ -144,4 +144,19 @@
         app:layout_constraintTop_toTopOf="@+id/button2"
         app:srcCompat="?attr/actionModeShareDrawable" />
 
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Home View"
+        tools:layout_editor_absoluteX="20dp"
+        tools:layout_editor_absoluteY="645dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/edit_text1"
+        app:layout_constraintTop_toBottomOf="@+id/imageView"
+        app:layout_constraintVertical_bias="0.925"
+
+        />
+
 </android.support.constraint.ConstraintLayout>
