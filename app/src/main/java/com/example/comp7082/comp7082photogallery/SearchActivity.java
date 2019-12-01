@@ -27,6 +27,8 @@ import java.util.Locale;
 
 public class SearchActivity extends AppCompatActivity {
 
+    private String TAG = SearchActivity.class.getSimpleName();
+
     public static final int LATITUDE_INDEX = 0;
     public static final int LONGITUDE_INDEX = 1;
 
@@ -86,7 +88,10 @@ public class SearchActivity extends AppCompatActivity {
         Log.d("keywordSearchBtn", "Button is clicked");
 
         hideSoftKeyboard();
-        returnSearchResults(keywordSearchImages());
+        Log.d(TAG, "call keywordSearchImages");
+        String[] results = keywordSearchImages();
+        Log.d(TAG, "return from  keywordSearchImages");
+        returnSearchResults(results);
     }
 
     private void returnSearchResults(String[] resultSet) {
@@ -362,7 +367,10 @@ public class SearchActivity extends AppCompatActivity {
 
         hideSoftKeyboard();
         if (isValidGpsCoords()) {
-            returnSearchResults(locationSearchImages());
+            Log.d(TAG, "call locationSearchImages");
+            String[] results = locationSearchImages();
+            Log.d(TAG, "return from locationSearchImages");
+            returnSearchResults(results);
         }
         else {
             Toast.makeText(this, "Please correct an invalid GPS coordinate", Toast.LENGTH_LONG).show();
