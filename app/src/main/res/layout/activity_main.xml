@@ -58,7 +58,7 @@
         android:textAlignment="viewStart"
         android:textSize="10sp"
         app:layout_constraintBottom_toTopOf="@+id/imageView"
-        app:layout_constraintEnd_toStartOf="@+id/button2"
+        app:layout_constraintEnd_toStartOf="@+id/button_tag_id"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/button_caption_id"
         app:layout_constraintTop_toTopOf="@+id/button_caption_id" />
@@ -84,7 +84,7 @@
         android:layout_height="68dp"
         android:layout_marginBottom="8dp"
         android:contentDescription="@string/camerabutton"
-        android:onClick="onSnapClicked"
+        android:onClick="onClickSnap"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -99,7 +99,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="8dp"
-        android:onClick="openSearchOnClick"
+        android:onClick="OnClickSearch"
         android:text="@string/searchText"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -109,12 +109,12 @@
         app:layout_constraintVertical_bias="1.0" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/button_tag_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
-        android:onClick="addTag"
-        android:text="@string/Tag"
+        android:onClick="onClickTags"
+        android:text="@string/tagButtonText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -130,6 +130,6 @@
         android:textAlignment="textEnd"
         android:textSize="10sp"
         app:layout_constraintEnd_toEndOf="@+id/imageView"
-        app:layout_constraintTop_toBottomOf="@+id/button2" />
+        app:layout_constraintTop_toBottomOf="@+id/button_tag_id" />
 
 </android.support.constraint.ConstraintLayout>

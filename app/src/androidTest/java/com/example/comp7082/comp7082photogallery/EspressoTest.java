@@ -91,9 +91,9 @@ public class EspressoTest {
     public void C_ensureTagsWorks() {
         //String currentPhotoPath = activityRule.getActivity().currentPhotoPath;
         String currentPhotoPath = activityRule.getActivity().getPhotoFileManagerForTest().getCurrentFilePath();
-        onView(withId(R.id.button2)).perform(click());
-        onView(withId(R.id.editText)).perform(typeText("camera icon"), closeSoftKeyboard());
-        onView(withId(R.id.button)).perform(click());
+        onView(withId(R.id.button_tag_id)).perform(click());
+        onView(withId(R.id.contentDetailsEditText)).perform(typeText("camera icon"), closeSoftKeyboard());
+        onView(withId(R.id.contentSetButton)).perform(click());
 
         File localFile = new File(currentPhotoPath);
         String fileKeywordTags = ExifUtility.getExifTagString(localFile, ExifUtility.EXIF_KEYWORDS_TAG);

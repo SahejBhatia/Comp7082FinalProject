@@ -31,7 +31,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.comp7082.comp7082photogallery.androidos.ExifUtility;
 import com.example.comp7082.comp7082photogallery.androidos.PhotoFileManager;
 import com.example.comp7082.comp7082photogallery.util.Constants;
 
@@ -45,11 +44,9 @@ public class MainActivity extends AppCompatActivity
 
     private String TAG = MainActivity.class.getSimpleName();
 
-    public String currentPhotoPath;
     private TextView imageIndexTextView;
     public ImageView imageView;
     public Bitmap bitmap;
-    public String[] filenames;
 
     private GestureDetector gestureScanner;
     private LocationManager locationManager;
@@ -81,37 +78,25 @@ public class MainActivity extends AppCompatActivity
         disableLocationUpdates();
     }
 
-    public void onClickCaption(View view){
-        toggleCaptionEditVisibility(View.VISIBLE);
-
-        // populate caption from file
-        EditText text1 = (EditText)findViewById(R.id.edit_text1);
-        //File myFile = new File(currentPhotoPath);
-        String caption = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
-        text1.setText(caption);
-
-//        Button saveButton = (Button)findViewById(R.id.button_save_id);
-//        saveButton.setVisibility(View.VISIBLE);
-//        text1.setVisibility(View.VISIBLE);
-    }
-
+    // to be deleted
     public void saveCaption(View view){
-        String comment = ((EditText) findViewById(R.id.edit_text1)).getText().toString();
-
-        hideSoftKeyboard();
-        if (photoFileManager.getCurrentPhotoFile() != null && !photoFileManager.getCurrentPhotoFile().isEmpty()) {
-            photoFileManager.setPhotoCaption(photoFileManager.getCurrentPhotoFile(), comment);
-
-            String savedComment = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
-            ((TextView) findViewById(R.id.currentImageCaptionTextView)).setText(savedComment);
-        }
-        else {
-            // no current photo to caption - clear text
-            ((TextView) findViewById(R.id.edit_text1)).setText("");
-        }
-        toggleCaptionEditVisibility(View.INVISIBLE);
+//        String comment = ((EditText) findViewById(R.id.edit_text1)).getText().toString();
+//
+//        hideSoftKeyboard();
+//        if (photoFileManager.getCurrentPhotoFile() != null && !photoFileManager.getCurrentPhotoFile().isEmpty()) {
+//            photoFileManager.setPhotoCaption(photoFileManager.getCurrentPhotoFile(), comment);
+//
+//            String savedComment = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
+//            ((TextView) findViewById(R.id.currentImageCaptionTextView)).setText(savedComment);
+//        }
+//        else {
+//            // no current photo to caption - clear text
+//            ((TextView) findViewById(R.id.edit_text1)).setText("");
+//        }
+//        toggleCaptionEditVisibility(View.INVISIBLE);
     }
 
+    // to be deleted
     private void toggleCaptionEditVisibility(int viewVisibility) {
         Button saveButton = (Button)findViewById(R.id.button_save_id);
         saveButton.setVisibility(viewVisibility);
@@ -132,12 +117,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void onSnapClicked(View view){
+    public void onClickSnap(View view){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         toggleCaptionEditVisibility(View.INVISIBLE);
         //enableLocationUpdates();    // begin scanning for location upon taking a photo
-        Log.d("onSnapClicked", "Begin capturing a photo");
+        Log.d("onClickSnap", "Begin capturing a photo");
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             File photoFile;
             try {
@@ -160,6 +145,80 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void onClickCaption(View view){
+        if(photoFileManager.getPhotoList() != null) {
+            Intent tagIntent = new Intent( MainActivity.this, EditContentActivity.class );
+            String imageCaption = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
+
+            tagIntent.putExtra(Constants.EXTRA_IMAGE_DATA, imageCaption );
+            tagIntent.putExtra("Title", getString(R.string.contentCaptionTitle ));
+            tagIntent.putExtra("Prompt", getString(R.string.contentPromptCaptionDescription) );
+            tagIntent.putExtra("UserHint", getString(R.string.contentDetailsCaptionHintText) );
+            startActivityForResult( tagIntent , Constants.REQUEST_SET_CAPTION );
+
+        } else {
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+            builder1.setMessage("Please take a pic first.");
+            builder1.setCancelable(true);
+
+            builder1.setPositiveButton(
+                    "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+
+            AlertDialog alert11 = builder1.create();
+            alert11.show();
+        }
+
+    }
+
+    public void onClickTags(View view) {
+
+        if(photoFileManager.getPhotoList() != null) {
+            Intent tagIntent = new Intent( MainActivity.this, EditContentActivity.class );
+            String imageKeyWords = photoFileManager.getPhotoKeyWords(photoFileManager.getCurrentPhotoFile());
+
+            tagIntent.putExtra(Constants.EXTRA_IMAGE_DATA, imageKeyWords );
+            tagIntent.putExtra("Title", getString(R.string.contentTagTitle ));
+            tagIntent.putExtra("Prompt", getString(R.string.contentPromptTagDescription) );
+            tagIntent.putExtra("UserHint", getString(R.string.contentDetailsTagsHintText) );
+            startActivityForResult( tagIntent , Constants.REQUEST_SET_TAG );
+
+        } else {
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+            builder1.setMessage("Please take a pic first.");
+            builder1.setCancelable(true);
+
+            builder1.setPositiveButton(
+                    "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+
+            AlertDialog alert11 = builder1.create();
+            alert11.show();
+        }
+    }
+
+    public void OnClickSearch(View view){
+        toggleCaptionEditVisibility(View.INVISIBLE);
+
+        Intent intent = new Intent(this, SearchActivity.class);
+        // ensure we send the whole list each time
+        photoFileManager.setPhotoList(
+                photoFileManager.getFilenames(photoFileManager.getPhotoLocation()),
+                PhotoFileManager.SAME_ITEM);
+
+        intent.putExtra(Constants.EXTRA_PHOTO_LIST, photoFileManager.getFilenames());
+        intent.putExtra(Constants.EXTRA_CURRENT_INDEX, photoFileManager.getCurrentPhotoIndex());
+        startActivityForResult(intent, Constants.REQUEST_IMAGE_SEARCH);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "onActivityResult: request["+requestCode+"] result["+resultCode+"]");
@@ -173,6 +232,10 @@ public class MainActivity extends AppCompatActivity
 
         if (requestCode == Constants.REQUEST_SET_TAG && resultCode == RESULT_OK){
             handlePhotoTagResult(data);
+        }
+
+        if (requestCode == Constants.REQUEST_SET_CAPTION && resultCode == RESULT_OK){
+            handlePhotoCaptionResult(data);
         }
     }
 
@@ -203,10 +266,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handlePhotoTagResult(Intent data) {
-        String imageKeywords = data.getExtras().getString(Constants.EXTRA_KEYWORDS_TAG );
+        String imageKeywords = data.getExtras().getString(Constants.EXTRA_IMAGE_DATA );
         Log.d(TAG, "handlePhotoTagResult: data: " + imageKeywords);
 
         photoFileManager.setPhotoKeyWords(photoFileManager.getCurrentPhotoFile(), imageKeywords);
+    }
+
+    private void handlePhotoCaptionResult(Intent data) {
+        String imageCaption = data.getExtras().getString(Constants.EXTRA_IMAGE_DATA );
+        Log.d(TAG, "handlePhotoCaptionResult: data: " + imageCaption);
+
+        photoFileManager.setPhotoCaption(photoFileManager.getCurrentPhotoFile(), imageCaption);
     }
 
     private void updateImageView(String imageFilename) {
@@ -257,20 +327,6 @@ public class MainActivity extends AppCompatActivity
         imageIndexTextView.setText(sb.toString());
     }
 
-    // Search methods
-    public void openSearchOnClick(View view){
-        toggleCaptionEditVisibility(View.INVISIBLE);
-
-        Intent intent = new Intent(this, SearchActivity.class);
-        // ensure we send the whole list each time
-        photoFileManager.setPhotoList(
-                photoFileManager.getFilenames(photoFileManager.getPhotoLocation()),
-                PhotoFileManager.SAME_ITEM);
-
-        intent.putExtra(Constants.EXTRA_PHOTO_LIST, photoFileManager.getFilenames());
-        intent.putExtra(Constants.EXTRA_CURRENT_INDEX, photoFileManager.getCurrentPhotoIndex());
-        startActivityForResult(intent, Constants.REQUEST_IMAGE_SEARCH);
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent me) {
@@ -402,31 +458,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void addTag(View view) {
-
-        if(photoFileManager.getPhotoList() != null) {
-            Intent tagIntent = new Intent( MainActivity.this, addTag.class );
-            String imageKeyWords = photoFileManager.getPhotoKeyWords(photoFileManager.getCurrentPhotoFile());
-
-            tagIntent.putExtra(Constants.EXTRA_KEYWORDS_TAG, imageKeyWords );
-            startActivityForResult( tagIntent , Constants.REQUEST_SET_TAG );
-        } else {
-            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
-            builder1.setMessage("Please take a pic first.");
-            builder1.setCancelable(true);
-
-            builder1.setPositiveButton(
-                    "OK",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    });
-
-            AlertDialog alert11 = builder1.create();
-            alert11.show();
-        }
-    }
 
     /*
      * hide the soft keyboard if it is displayed

@@ -5,6 +5,7 @@ public class Constants {
 
 
     public static final String EXTRA_CURRENT_INDEX = ROOT_PACKAGE_NAME + ".CURRENT_INDEX";
+    public static final String EXTRA_IMAGE_DATA = ROOT_PACKAGE_NAME + ".IMAGE_DATA";
     public static final String EXTRA_KEYWORDS_TAG = ROOT_PACKAGE_NAME + ".KEYWORDS_TAG";
     public static final String EXTRA_PHOTO_LIST = ROOT_PACKAGE_NAME + ".PHOTO_LIST";
 
@@ -18,6 +19,7 @@ public class Constants {
     public static final int REQUEST_IMAGE_CAPTURE = 1;
     public static final int REQUEST_IMAGE_SEARCH = 2;
     public static final int REQUEST_SET_TAG = 3;
+    public static final int REQUEST_SET_CAPTION = 4;
 
     public static final String STORAGE_LOCATION = "/Android/data/" + ROOT_PACKAGE_NAME + "/files/Pictures/";
 }

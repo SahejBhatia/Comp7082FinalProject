@@ -48,8 +48,8 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".addTag"
-            android:label="@string/Tag"
+        <activity android:name=".EditContentActivity"
+            android:label="@string/contentTagTitle"
             android:theme="@style/AppTheme.pop">
 
 

@@ -8,10 +8,12 @@
     <string name="tagSearchPrompt">Search by Keyword</string>
     <string name="searchDatePromptFrom">From</string>
     <string name="searchDatepromptTo">To</string>
-    <string name="Tag">Add Tags</string>
-    <string name="TagOK">Set</string>
-    <string name="TagCancel">Cancel</string>
-    <string name="TagDescription">Associate your pics with tags here. This will make searching easier!</string>
+    <string name="contentTagTitle">Add Some Tags</string>
+    <string name="contentCaptionTitle">Add A Caption</string>
+    <string name="contentOKText">Set</string>
+    <string name="contentCancelText">Cancel</string>
+    <string name="contentPromptTagDescription">Associate your pictures with tags here. This will make searching easier!</string>
+    <string name="contentPromptCaptionDescription">Describe your picture with a comment here.</string>
     <string name="addressPrompt">Search by Address Location</string>
     <string name="addressLocationTextHint">Enter address to find</string>
     <string name="gpsCoordPrompt">Search by a GPS Area</string>
@@ -24,5 +26,8 @@
     <string name="camerabutton">cameraButton</string>
     <string name="imageview">imageView</string>
     <string name="captionSave">Save</string>
+    <string name="tagButtonText">Tags</string>
     <string name="captionButtonText">Caption</string>
+    <string name="contentDetailsTagsHintText">Set tag words here</string>
+    <string name="contentDetailsCaptionHintText">Set a caption here</string>
 </resources>
