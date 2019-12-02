@@ -1,4 +1,4 @@
-package com.example.comp7082.comp7082photogallery;
+package com.example.comp7082.comp7082photogallery.androidos;
 
 import android.media.ExifInterface;
 import android.util.Log;

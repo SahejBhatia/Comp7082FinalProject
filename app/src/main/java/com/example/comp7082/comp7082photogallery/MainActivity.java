@@ -14,7 +14,6 @@ import android.location.LocationListener;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -32,72 +31,48 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.comp7082.comp7082photogallery.androidos.ExifUtility;
+import com.example.comp7082.comp7082photogallery.androidos.PhotoFileManager;
+import com.example.comp7082.comp7082photogallery.util.Constants;
+
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Random;
 
 public class MainActivity extends AppCompatActivity
         implements GestureDetector.OnGestureListener,
         LocationListener {
-    // Tag names for Intent Extra Info
-    public static final String EXTRA_CURRENT_INDEX = "com.example.comp7082.comp7082photogallery.CURRENT_INDEX";
-    public static final String EXTRA_KEYWORDS_TAG = "com.example.comp7082.comp7082photogallery.KEYWORDS_TAG";
-    public static final String EXTRA_PHOTO_LIST = "com.example.comp7082.comp7082photogallery.PHOTO_LIST";
 
-    private static final float MIN_FLING_DISTANCE = 200.0f;
-    private static final float MAX_FLING_DISTANCE = 1000.0f;
-    public static final int NAVIGATE_RIGHT = 1;
-    public static final int NAVIGATE_LEFT = -1;
-
-
-    static final int REQUEST_IMAGE_CAPTURE = 1;
-    static final int REQUEST_TAKE_PHOTO = 1;
-    static final int REQUEST_IMAGE_SEARCH = 2;
-    static final int REQUEST_SET_TAG = 3;
+    private String TAG = MainActivity.class.getSimpleName();
 
     public String currentPhotoPath;
     private TextView imageIndexTextView;
     public ImageView imageView;
     public Bitmap bitmap;
-    public int currentIndex = 0;
-    public String directory = Environment.getExternalStorageDirectory() + "/Android/data/com.example.comp7082.comp7082photogallery/files/Pictures/";
     public String[] filenames;
 
     private GestureDetector gestureScanner;
     private LocationManager locationManager;
-    //private Location cachedLocation;
+    private PhotoFileManager photoFileManager;
 
-//    private Random rand;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         imageIndexTextView = findViewById(R.id.imageIndexTextView);
+        imageView = findViewById(R.id.imageView);
 
         gestureScanner = new GestureDetector(getBaseContext(), this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        imageView = findViewById(R.id.imageView);
-
-        getFilenames(directory);
-        if (filenames != null && filenames.length > 0) {
-            currentPhotoPath = getCurrentFilePath();
-        }
-
-
-//        rand = new Random();
+        photoFileManager = new PhotoFileManager();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         enableLocationUpdates();
-
     }
 
     @Override
@@ -111,8 +86,9 @@ public class MainActivity extends AppCompatActivity
 
         // populate caption from file
         EditText text1 = (EditText)findViewById(R.id.edit_text1);
-        File myFile = new File(currentPhotoPath);
-        text1.setText(ExifUtility.getExifTagString(myFile, ExifUtility.EXIF_CAPTION_TAG));
+        //File myFile = new File(currentPhotoPath);
+        String caption = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
+        text1.setText(caption);
 
 //        Button saveButton = (Button)findViewById(R.id.button_save_id);
 //        saveButton.setVisibility(View.VISIBLE);
@@ -123,22 +99,17 @@ public class MainActivity extends AppCompatActivity
         String comment = ((EditText) findViewById(R.id.edit_text1)).getText().toString();
 
         hideSoftKeyboard();
-        if (currentPhotoPath != null && !currentPhotoPath.isEmpty()) {
-            File myFile = new File(currentPhotoPath);
-            ExifUtility.setExifTagString(myFile, ExifUtility.EXIF_CAPTION_TAG, comment);
+        if (photoFileManager.getCurrentPhotoFile() != null && !photoFileManager.getCurrentPhotoFile().isEmpty()) {
+            photoFileManager.setPhotoCaption(photoFileManager.getCurrentPhotoFile(), comment);
 
-            CharSequence text = ExifUtility.getExifTagString(myFile, ExifUtility.EXIF_CAPTION_TAG);
-            ((TextView) findViewById(R.id.currentImageCaptionTextView)).setText(text);
+            String savedComment = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
+            ((TextView) findViewById(R.id.currentImageCaptionTextView)).setText(savedComment);
         }
         else {
             // no current photo to caption - clear text
             ((TextView) findViewById(R.id.edit_text1)).setText("");
         }
         toggleCaptionEditVisibility(View.INVISIBLE);
-//        int duration = Toast.LENGTH_SHORT;
-//
-//        Toast toast = Toast.makeText(context, text, duration);
-//        toast.show();
     }
 
     private void toggleCaptionEditVisibility(int viewVisibility) {
@@ -155,22 +126,9 @@ public class MainActivity extends AppCompatActivity
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
-            if(currentPhotoPath != null){
-                createPicture(currentPhotoPath);
-                imageView.setImageBitmap(bitmap);
+            if(photoFileManager.getCurrentPhotoFile() != null){
+                updateImageView(photoFileManager.getCurrentPhotoFile());
             }
-        }
-    }
-
-    private String getCurrentFilePath() {
-        return directory + filenames[currentIndex];
-    }
-
-    private void getFilenames(String directory){
-        File path = new File(directory);
-        if (path.exists()) {
-            filenames = path.list();
-            Log.d("getFileNames", "filenames length = " + filenames.length);
         }
     }
 
@@ -183,7 +141,7 @@ public class MainActivity extends AppCompatActivity
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             File photoFile;
             try {
-                photoFile = createImageFile();
+                photoFile = photoFileManager.createImageFile();
             } catch (IOException ex) {
                 Toast.makeText(this,
                         "Photo file can't be created, please try again",
@@ -194,66 +152,70 @@ public class MainActivity extends AppCompatActivity
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.comp7082.comp7082photogallery.provider",
+                        Constants.ROOT_PACKAGE_NAME + ".provider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+                startActivityForResult(takePictureIntent, Constants.REQUEST_IMAGE_CAPTURE);
             }
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            createPicture(currentPhotoPath);
-            imageView.setImageBitmap(bitmap);
-            //disableLocationUpdates();   // end scanning for location once photo is saved
-
-            // update gallery list
-            getFilenames(directory);
-            currentIndex = filenames.length - 1;
-            getPhotoLocation();
-            Log.d("onActivityResult", "Finished request image capture");
+        Log.d(TAG, "onActivityResult: request["+requestCode+"] result["+resultCode+"]");
+        if (requestCode == Constants.REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            handleImageRequestResult();
         }
 
-        if (requestCode == REQUEST_IMAGE_SEARCH && resultCode == RESULT_OK) {
-            filenames = data.getStringArrayExtra(MainActivity.EXTRA_PHOTO_LIST);
-
-            if (filenames == null) {
-                getFilenames(directory);
-            }
-            currentIndex = 0;
-
-            currentPhotoPath = getCurrentFilePath();
-            createPicture(currentPhotoPath);
-            imageView.setImageBitmap(bitmap);
+        if (requestCode == Constants.REQUEST_IMAGE_SEARCH && resultCode == RESULT_OK) {
+            handleSearchRequestResult(data);
         }
 
-        if (requestCode == REQUEST_SET_TAG && resultCode == RESULT_OK){
-
-            System.out.println("back from tag activity");
-            System.out.println(data.getExtras().getString( EXTRA_KEYWORDS_TAG ));
-
-            Log.d("onActivityResult", "dataExtra: " + data.getExtras().getString( EXTRA_KEYWORDS_TAG ));
-            File currentFile = new File(currentPhotoPath);
-            ExifUtility.setExifTagString(currentFile, ExifUtility.EXIF_KEYWORDS_TAG, data.getExtras().getString( EXTRA_KEYWORDS_TAG ));
+        if (requestCode == Constants.REQUEST_SET_TAG && resultCode == RESULT_OK){
+            handlePhotoTagResult(data);
         }
     }
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,
-                ".jpg",
-                storageDir
-        );
+    private void handleImageRequestResult() {
+        //disableLocationUpdates();   // end scanning for location once photo is saved
+        Log.d(TAG, "handleImageRequestResult: begin");
+        updateImageView(photoFileManager.getCurrentPhotoFile());
 
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
+        // update gallery list
+        photoFileManager.setPhotoList(
+                photoFileManager.getFilenames(photoFileManager.getPhotoLocation()),
+                PhotoFileManager.LAST_ITEM);
+        //getPhotoLocation();
+        Log.d(TAG, "handleImageRequestResult: Finished request image capture");
+    }
+
+    private void handleSearchRequestResult(Intent data) {
+        String[] filenames = data.getStringArrayExtra(Constants.EXTRA_PHOTO_LIST);
+
+        // search not found, return to full image list
+        if (filenames == null) {
+            photoFileManager.setPhotoList(
+                    photoFileManager.getFilenames(photoFileManager.getPhotoLocation()),
+                    PhotoFileManager.FIRST_ITEM);
+        }
+
+        updateImageView(photoFileManager.getCurrentPhotoFile());
+    }
+
+    private void handlePhotoTagResult(Intent data) {
+        String imageKeywords = data.getExtras().getString(Constants.EXTRA_KEYWORDS_TAG );
+        Log.d(TAG, "handlePhotoTagResult: data: " + imageKeywords);
+
+        photoFileManager.setPhotoKeyWords(photoFileManager.getCurrentPhotoFile(), imageKeywords);
+    }
+
+    private void updateImageView(String imageFilename) {
+        createPicture(imageFilename); // set instance bitmap
+        imageView.setImageBitmap(bitmap);
+
+        // retrieve the caption for the new image
+        getCaptionFromImageFile(imageFilename);
+        updateImageIndexText();
     }
 
     public void createPicture(String filepath) {
@@ -276,26 +238,21 @@ public class MainActivity extends AppCompatActivity
         bmOptions.inSampleSize = scaleFactor;
 
         bitmap = BitmapFactory.decodeFile(filepath, bmOptions);
-
-        // retrieve the caption for the new image
-        getCaptionFromImageFile(currentPhotoPath);
-        updateImageIndexText();
     }
 
     private void getCaptionFromImageFile(String photoPath) {
         // retrieve the caption for the new image
-        File currentFile = new File(photoPath);
-        String currentFileCaption = ExifUtility.getExifTagString(currentFile, ExifUtility.EXIF_CAPTION_TAG);
+        String currentFileCaption = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
         ((TextView)findViewById(R.id.currentImageCaptionTextView)).setText((currentFileCaption == null ? "" : currentFileCaption));
     }
 
     private void updateImageIndexText() {
 
         StringBuilder sb = new StringBuilder();
-        sb.append(currentIndex+1);
-        if (filenames.length > 0) {
+        sb.append(photoFileManager.getCurrentPhotoIndex()+1);
+        if (photoFileManager.getPhotoList().length > 0) {
             sb.append(" of ");
-            sb.append(filenames.length);
+            sb.append(photoFileManager.getPhotoList().length);
         }
         imageIndexTextView.setText(sb.toString());
     }
@@ -305,11 +262,14 @@ public class MainActivity extends AppCompatActivity
         toggleCaptionEditVisibility(View.INVISIBLE);
 
         Intent intent = new Intent(this, SearchActivity.class);
-        getFilenames(directory);    // ensure we send the whole list each time
+        // ensure we send the whole list each time
+        photoFileManager.setPhotoList(
+                photoFileManager.getFilenames(photoFileManager.getPhotoLocation()),
+                PhotoFileManager.SAME_ITEM);
 
-        intent.putExtra(EXTRA_PHOTO_LIST, filenames);
-        intent.putExtra(EXTRA_CURRENT_INDEX, currentIndex);
-        startActivityForResult(intent, REQUEST_IMAGE_SEARCH);
+        intent.putExtra(Constants.EXTRA_PHOTO_LIST, photoFileManager.getFilenames());
+        intent.putExtra(Constants.EXTRA_CURRENT_INDEX, photoFileManager.getCurrentPhotoIndex());
+        startActivityForResult(intent, Constants.REQUEST_IMAGE_SEARCH);
     }
 
     @Override
@@ -334,16 +294,16 @@ public class MainActivity extends AppCompatActivity
         Log.d("Fling, deltaY = ", Float.toString(deltaY));
         Log.d("Fling, deltaXAbs = ", Float.toString(deltaXAbs));
         Log.d("Fling, deltaYAbs = ", Float.toString(deltaYAbs));
-        if ((deltaXAbs >= MIN_FLING_DISTANCE) && (deltaXAbs <= MAX_FLING_DISTANCE)) {
+        if ((deltaXAbs >= Constants.MIN_FLING_DISTANCE) && (deltaXAbs <= Constants.MAX_FLING_DISTANCE)) {
             if (deltaX > 0) {
                 // left swipe - so scrolling to the right
                 Log.d("Fling, SWIPE LEFT","!");
-                scrollGallery(NAVIGATE_RIGHT); // scroll right
+                scrollGallery(Constants.NAVIGATE_RIGHT); // scroll right
             }
             else {
                 // right swipe - so scrolling to the left
                 Log.d("Fling, SWIPE RIGHT","!");
-                scrollGallery(NAVIGATE_LEFT);  // scroll left
+                scrollGallery(Constants.NAVIGATE_LEFT);  // scroll left
             }
         }
         return true;
@@ -351,12 +311,14 @@ public class MainActivity extends AppCompatActivity
 
     // direction parameter should be an enum
     private void scrollGallery(int direction) {
+        int currentIndex = photoFileManager.getCurrentPhotoIndex();
+
         switch (direction) {
-            case NAVIGATE_LEFT:     // left
+            case Constants.NAVIGATE_LEFT:     // left
                 Log.d("scrollGallery :", "Scroll Left");
                 --currentIndex;
                 break;
-            case NAVIGATE_RIGHT:    // right
+            case Constants.NAVIGATE_RIGHT:    // right
                 Log.d("scrollGallery :", "Scroll Right");
                 ++currentIndex;
                 break;
@@ -368,16 +330,12 @@ public class MainActivity extends AppCompatActivity
         if (currentIndex < 0) {
             currentIndex = 0;
         }
-        if (filenames.length > 0 && currentIndex >= filenames.length) {
-            currentIndex = filenames.length - 1;
-        }
 
-        // update the gallery image
-        currentPhotoPath = directory + filenames[currentIndex];
-        Log.d("scrollGallery :", "currentIndex = " + currentIndex + " filenames.length = " + filenames.length);
-        Log.d("scrollGallery :", "currentPhotoPath = " + currentPhotoPath);
-        createPicture(currentPhotoPath);
-        imageView.setImageBitmap(bitmap);
+        // will handle upper bound
+        photoFileManager.setCurrentPhotoIndex(currentIndex);
+        photoFileManager.setCurrentPhotoFile(photoFileManager.getCurrentPhotoIndex());
+
+        updateImageView(photoFileManager.getCurrentPhotoFile());
     }
 
     @Override
@@ -409,68 +367,56 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void displayPhotoTimeStamp() {
-        File currentFile = new File(currentPhotoPath);
-        String photoDate = ExifUtility.getExifTagString(currentFile, ExifUtility.EXIF_DATETIME_TAG);
-
+        String photoDate = photoFileManager.getPhotoTimeStamp(photoFileManager.getCurrentPhotoFile());
         Toast.makeText(this, "Date: " + photoDate, Toast.LENGTH_LONG).show();
     }
 
     private void getPhotoLocation() {
 
-        float location[] = {0.0f, 0.0f} ;   // lat, long
-
-        File currentFile = new File(currentPhotoPath);
-        if (ExifUtility.getExifLatLong(currentFile, location)) {
-            String city = "";
-            float latitude = location[0];
-            float longitude = location[1];
-            Log.d("getPhotoLocation", "File location: lat: " + latitude + " long: " + longitude);
-
-            Geocoder geo = new Geocoder(this);
-            try {
-                List<Address> addressList = geo.getFromLocation(latitude, longitude, 1);
-                for (Address addr : addressList) {
-                    city = addr.getLocality();
-                    Log.d("getPhotoLocation", "addr: " + addr.getLocality());
-                }
-            } catch (IOException e) {
-                Log.d("getPhotoLocation", "geo IOException " + e.getMessage());
-            }
-            Toast.makeText(this,
-                    "Location: lat: " + latitude + " long: " + longitude + (city.isEmpty() ? "" : "\n" + city),
-                    Toast.LENGTH_LONG).show();
-        }
-        else {
-            Log.d("getPhotoLocation", "File location: not retrieved");
-        }
+//        float location[] = {0.0f, 0.0f} ;   // lat, long
+//
+//        File currentFile = new File(currentPhotoPath);
+//        if (ExifUtility.getExifLatLong(currentFile, location)) {
+//            String city = "";
+//            float latitude = location[0];
+//            float longitude = location[1];
+//            Log.d("getPhotoLocation", "File location: lat: " + latitude + " long: " + longitude);
+//
+//            Geocoder geo = new Geocoder(this);
+//            try {
+//                List<Address> addressList = geo.getFromLocation(latitude, longitude, 1);
+//                for (Address addr : addressList) {
+//                    city = addr.getLocality();
+//                    Log.d("getPhotoLocation", "addr: " + addr.getLocality());
+//                }
+//            } catch (IOException e) {
+//                Log.d("getPhotoLocation", "geo IOException " + e.getMessage());
+//            }
+//            Toast.makeText(this,
+//                    "Location: lat: " + latitude + " long: " + longitude + (city.isEmpty() ? "" : "\n" + city),
+//                    Toast.LENGTH_LONG).show();
+//        }
+//        else {
+//            Log.d("getPhotoLocation", "File location: not retrieved");
+//        }
 
     }
 
     public void addTag(View view) {
 
-        //check if image was taken
-        //allow tags only if image is taken
-        //else if show message
-        //Toast.makeText( this, "photo path" + currentIndex, Toast.LENGTH_SHORT ).show();
-        //System.out.println(filenames[currentIndex]);
-
-        if(filenames != null) {
-
-            //send current image's name to next activity
-
+        if(photoFileManager.getPhotoList() != null) {
             Intent tagIntent = new Intent( MainActivity.this, addTag.class );
-            tagIntent.putExtra( "FileName", filenames[currentIndex] );
-            File currentFile = new File(currentPhotoPath);
+            String imageKeyWords = photoFileManager.getPhotoKeyWords(photoFileManager.getCurrentPhotoFile());
 
-            tagIntent.putExtra( EXTRA_KEYWORDS_TAG, ExifUtility.getExifTagString(currentFile, ExifUtility.EXIF_KEYWORDS_TAG) );
-            startActivityForResult( tagIntent , REQUEST_SET_TAG );
+            tagIntent.putExtra(Constants.EXTRA_KEYWORDS_TAG, imageKeyWords );
+            startActivityForResult( tagIntent , Constants.REQUEST_SET_TAG );
         } else {
             AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
             builder1.setMessage("Please take a pic first.");
             builder1.setCancelable(true);
 
             builder1.setPositiveButton(
-                    "ok",
+                    "OK",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             dialog.cancel();
@@ -589,6 +535,10 @@ public class MainActivity extends AppCompatActivity
             locationManager.removeUpdates(this);
             Log.d("disableLocationUpdates","End accepting location updates");
         }
+    }
+
+    public PhotoFileManager getPhotoFileManagerForTest() {
+        return  photoFileManager;
     }
 
 }

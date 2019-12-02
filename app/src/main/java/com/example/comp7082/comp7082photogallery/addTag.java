@@ -9,6 +9,8 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.EditText;
 
+import com.example.comp7082.comp7082photogallery.util.Constants;
+
 public class addTag extends AppCompatActivity {
 
     private String fileName;
@@ -31,7 +33,7 @@ public class addTag extends AppCompatActivity {
         intent = getIntent();
 //        fileName= intent.getStringExtra( "FileName" );
 //        System.out.println("from the second activity "+fileName);
-        String givenTags = intent.getStringExtra( MainActivity.EXTRA_KEYWORDS_TAG );
+        String givenTags = intent.getStringExtra( Constants.EXTRA_KEYWORDS_TAG );
         tag.setText(givenTags);
 
 
@@ -57,7 +59,7 @@ public class addTag extends AppCompatActivity {
         }else{
         //sending back tag
 
-            intent.putExtra(MainActivity.EXTRA_KEYWORDS_TAG, tag.getText().toString());
+            intent.putExtra(Constants.EXTRA_KEYWORDS_TAG, tag.getText().toString());
             setResult(RESULT_OK, intent);
             finish();
         }

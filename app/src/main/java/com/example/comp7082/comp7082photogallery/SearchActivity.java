@@ -15,6 +15,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.comp7082.comp7082photogallery.androidos.ExifUtility;
+import com.example.comp7082.comp7082photogallery.util.Constants;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -74,8 +77,8 @@ public class SearchActivity extends AppCompatActivity {
         gpsNELongitudeEditText = findViewById(R.id.gpsNELongitudeTextEdit);
 
         Intent intent = getIntent();
-        sourceFilenames = intent.getStringArrayExtra(MainActivity.EXTRA_PHOTO_LIST);
-        currentIndex = intent.getIntExtra(MainActivity.EXTRA_CURRENT_INDEX, 0);
+        sourceFilenames = intent.getStringArrayExtra(Constants.EXTRA_PHOTO_LIST);
+        currentIndex = intent.getIntExtra(Constants.EXTRA_CURRENT_INDEX, 0);
     }
 
     /**
@@ -107,7 +110,7 @@ public class SearchActivity extends AppCompatActivity {
 
         // send data back to caller
         Intent data = new Intent();
-        data.putExtra(MainActivity.EXTRA_PHOTO_LIST,resultSet);
+        data.putExtra(Constants.EXTRA_PHOTO_LIST,resultSet);
         setResult(RESULT_OK,data);
         finish();
     }
