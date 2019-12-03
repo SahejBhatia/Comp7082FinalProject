@@ -184,8 +184,8 @@ public class MainActivity extends AppCompatActivity
                 photoFileManager.getFilenames(photoFileManager.getPhotoLocation()),
                 PhotoFileManager.SAME_ITEM);
 
-        intent.putExtra(Constants.EXTRA_PHOTO_LIST, photoFileManager.getFilenames());
-        intent.putExtra(Constants.EXTRA_CURRENT_INDEX, photoFileManager.getCurrentPhotoIndex());
+//        intent.putExtra(Constants.EXTRA_PHOTO_LIST, photoFileManager.getFilenames());
+//        intent.putExtra(Constants.EXTRA_CURRENT_INDEX, photoFileManager.getCurrentPhotoIndex());
         startActivityForResult(intent, Constants.REQUEST_IMAGE_SEARCH);
     }
 
@@ -223,29 +223,35 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handleSearchRequestResult(Intent data) {
-        String[] filenames = data.getStringArrayExtra(Constants.EXTRA_PHOTO_LIST);
-
         PhotoSearch photoSearch = new PhotoSearch(photoFileManager);
 
-        String userKeywords = "cat";
-        boolean KeywordSearch = false;
-        boolean DateSearch = false;
-        boolean LocationSearch = false;
-        boolean GpsSearch = true;
+        boolean KeywordSearch = data.getBooleanExtra(Constants.EXTRA_SEARCH_TYPE_KEYWORD, false);
+        String userKeywords = data.getStringExtra(Constants.EXTRA_SEARCH_VALUE_KEYWORD);
+
+        boolean DateSearch = data.getBooleanExtra(Constants.EXTRA_SEARCH_TYPE_DATE, false);
+        String userFromDateStr = data.getStringExtra(Constants.EXTRA_SEARCH_VALUE_FROMDATE);
+        String userToDateStr = data.getStringExtra(Constants.EXTRA_SEARCH_VALUE_TODATE);
+
+        boolean LocationSearch = data.getBooleanExtra(Constants.EXTRA_SEARCH_TYPE_LOCATION, false);
+        String addressLocation = data.getStringExtra(Constants.EXTRA_SEARCH_VALUE_LOCATION);
+
+        boolean GpsSearch = data.getBooleanExtra(Constants.EXTRA_SEARCH_TYPE_GPSBOX, false);
+        double[] swGpsCoord = data.getDoubleArrayExtra(Constants.EXTRA_SEARCH_VALUE_GPS_SW);
+        double[] neGpsCoord = data.getDoubleArrayExtra(Constants.EXTRA_SEARCH_VALUE_GPS_NE);
 
         Date userFromDate = null;
         Date userToDate = null;
         try {
-            userFromDate = new SimpleDateFormat("yyyy/MM/dd", Locale.US).parse("2019/10/12");
-            userToDate = new SimpleDateFormat("yyyy/MM/dd", Locale.US).parse("2019/10/12");
+            userFromDate = new SimpleDateFormat("yyyy/MM/dd", Locale.US).parse(userFromDateStr);
+            userToDate = new SimpleDateFormat("yyyy/MM/dd", Locale.US).parse(userToDateStr);
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        String addressLocation =  "1500 Amphitheatre Pkwy Mountain View, CA";//"330 Main St Vancouver BC";
+        //String addressLocation =  "1500 Amphitheatre Pkwy Mountain View, CA";//"330 Main St Vancouver BC";
 
-        double[] swGpsCoord = {37.3680502, -122.029187};
-        double[] neGpsCoord = {37.4780502, -122.1391807};
+//        double[] swGpsCoord = {37.3680502, -122.029187};
+//        double[] neGpsCoord = {37.4780502, -122.1391807};
 
         boolean didSearch = false;
         String[] resultSet = null;
@@ -268,7 +274,6 @@ public class MainActivity extends AppCompatActivity
         }
         if (GpsSearch) {
             if (!didSearch || (didSearch && resultSet != null)) {
-                //photoSearch.setGeocoder(new Geocoder(this));
                 resultSet = photoSearch.searchByGpsBoxLocation(swGpsCoord, neGpsCoord);
             }
             didSearch = true;

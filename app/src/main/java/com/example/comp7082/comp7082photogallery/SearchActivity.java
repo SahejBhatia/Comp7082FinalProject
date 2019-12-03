@@ -66,8 +66,8 @@ public class SearchActivity extends AppCompatActivity {
         tagSearchEditText = findViewById(R.id.tagSearchEditText);
         fromDateEditText = findViewById(R.id.fromDateEditText);
         toDateEditText = findViewById(R.id.toDateEditText);
-        fromTimeEditText = findViewById(R.id.fromTimeEditText);
-        toTimeEditText = findViewById(R.id.toTimeEditText);
+        //fromTimeEditText = findViewById(R.id.fromTimeEditText);
+        //toTimeEditText = findViewById(R.id.toTimeEditText);
 
         // Location fields
         addressEditText = findViewById(R.id.addressLocationEditText);
@@ -76,9 +76,9 @@ public class SearchActivity extends AppCompatActivity {
         gpsNELatitudeEditText = findViewById(R.id.gpsNELatitudeTextEdit);
         gpsNELongitudeEditText = findViewById(R.id.gpsNELongitudeTextEdit);
 
-        Intent intent = getIntent();
-        sourceFilenames = intent.getStringArrayExtra(Constants.EXTRA_PHOTO_LIST);
-        currentIndex = intent.getIntExtra(Constants.EXTRA_CURRENT_INDEX, 0);
+//        Intent intent = getIntent();
+//        sourceFilenames = intent.getStringArrayExtra(Constants.EXTRA_PHOTO_LIST);
+//        currentIndex = intent.getIntExtra(Constants.EXTRA_CURRENT_INDEX, 0);
     }
 
     /**
@@ -87,14 +87,52 @@ public class SearchActivity extends AppCompatActivity {
      * @param view not used
      */
     public void keywordSearchButtonOnClick(View view) {
-        // diag markers
         Log.d("keywordSearchBtn", "Button is clicked");
 
         hideSoftKeyboard();
-        Log.d(TAG, "call keywordSearchImages");
-        String[] results = keywordSearchImages();
-        Log.d(TAG, "return from  keywordSearchImages");
-        returnSearchResults(results);
+
+        String userKeywords = tagSearchEditText.getText().toString();
+        String userFromDate = fromDateEditText.getText().toString();
+        String userToDate = toDateEditText.getText().toString();
+        String userLocation = addressEditText.getText().toString();
+
+        double[] swGpsCoordinate = {0.0, 0.0};
+        double[] neGpsCoordinate = {0.0, 0.0};
+
+        if (!gpsSWLatitudeEditText.getText().toString().isEmpty()) {
+            swGpsCoordinate[0] = Double.parseDouble(gpsSWLatitudeEditText.getText().toString());
+        }
+        if (!gpsSWLongitudeEditText.getText().toString().isEmpty()) {
+            swGpsCoordinate[1] = Double.parseDouble(gpsSWLongitudeEditText.getText().toString());
+        }
+        if (!gpsNELatitudeEditText.getText().toString().isEmpty()) {
+            neGpsCoordinate[0] = Double.parseDouble(gpsNELatitudeEditText.getText().toString());
+        }
+        if (!gpsNELongitudeEditText.getText().toString().isEmpty()) {
+            neGpsCoordinate[1] = Double.parseDouble(gpsNELongitudeEditText.getText().toString());
+        }
+
+        // set the search flags
+        boolean keywordSearch = !userKeywords.isEmpty();
+        boolean dateSearch = (!userFromDate.isEmpty() || !userToDate.isEmpty());
+        boolean locationSearch = !userLocation.isEmpty();
+        boolean gpsBoxSearch = (swGpsCoordinate[0] != 0.0 || swGpsCoordinate[1] != 0.0 &&
+                                neGpsCoordinate[0] != 0.0 || neGpsCoordinate[1] != 0.0);
+
+        // send data back to caller
+        Intent data = new Intent();
+        data.putExtra(Constants.EXTRA_SEARCH_TYPE_KEYWORD, keywordSearch);
+        data.putExtra(Constants.EXTRA_SEARCH_VALUE_KEYWORD, userKeywords);
+        data.putExtra(Constants.EXTRA_SEARCH_TYPE_DATE, dateSearch);
+        data.putExtra(Constants.EXTRA_SEARCH_VALUE_FROMDATE, userFromDate);
+        data.putExtra(Constants.EXTRA_SEARCH_VALUE_TODATE, userToDate);
+        data.putExtra(Constants.EXTRA_SEARCH_TYPE_LOCATION, locationSearch);
+        data.putExtra(Constants.EXTRA_SEARCH_VALUE_LOCATION, userLocation);
+        data.putExtra(Constants.EXTRA_SEARCH_TYPE_GPSBOX, gpsBoxSearch);
+        data.putExtra(Constants.EXTRA_SEARCH_VALUE_GPS_SW, swGpsCoordinate);
+        data.putExtra(Constants.EXTRA_SEARCH_VALUE_GPS_NE, neGpsCoordinate);
+        setResult(RESULT_OK,data);
+        finish();
     }
 
     private void returnSearchResults(String[] resultSet) {
@@ -370,10 +408,10 @@ public class SearchActivity extends AppCompatActivity {
 
         hideSoftKeyboard();
         if (isValidGpsCoords()) {
-            Log.d(TAG, "call locationSearchImages");
-            String[] results = locationSearchImages();
-            Log.d(TAG, "return from locationSearchImages");
-            returnSearchResults(results);
+//            Log.d(TAG, "call locationSearchImages");
+//            String[] results = locationSearchImages();
+//            Log.d(TAG, "return from locationSearchImages");
+//            returnSearchResults(results);
         }
         else {
             Toast.makeText(this, "Please correct an invalid GPS coordinate", Toast.LENGTH_LONG).show();
