@@ -24,9 +24,6 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -78,36 +75,6 @@ public class MainActivity extends AppCompatActivity
         disableLocationUpdates();
     }
 
-    // to be deleted
-    public void saveCaption(View view){
-//        String comment = ((EditText) findViewById(R.id.edit_text1)).getText().toString();
-//
-//        hideSoftKeyboard();
-//        if (photoFileManager.getCurrentPhotoFile() != null && !photoFileManager.getCurrentPhotoFile().isEmpty()) {
-//            photoFileManager.setPhotoCaption(photoFileManager.getCurrentPhotoFile(), comment);
-//
-//            String savedComment = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
-//            ((TextView) findViewById(R.id.currentImageCaptionTextView)).setText(savedComment);
-//        }
-//        else {
-//            // no current photo to caption - clear text
-//            ((TextView) findViewById(R.id.edit_text1)).setText("");
-//        }
-//        toggleCaptionEditVisibility(View.INVISIBLE);
-    }
-
-    // to be deleted
-    private void toggleCaptionEditVisibility(int viewVisibility) {
-        Button saveButton = (Button)findViewById(R.id.button_save_id);
-        saveButton.setVisibility(viewVisibility);
-        EditText text1 = (EditText)findViewById(R.id.edit_text1);
-        text1.setVisibility(viewVisibility);
-        if (viewVisibility != View.VISIBLE) {
-            text1.setText("");  // ensure to clear it out
-        }
-    }
-
-
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
@@ -120,7 +87,6 @@ public class MainActivity extends AppCompatActivity
     public void onClickSnap(View view){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-        toggleCaptionEditVisibility(View.INVISIBLE);
         //enableLocationUpdates();    // begin scanning for location upon taking a photo
         Log.d("onClickSnap", "Begin capturing a photo");
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -206,7 +172,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void OnClickSearch(View view){
-        toggleCaptionEditVisibility(View.INVISIBLE);
 
         Intent intent = new Intent(this, SearchActivity.class);
         // ensure we send the whole list each time
@@ -266,17 +231,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handlePhotoTagResult(Intent data) {
-        String imageKeywords = data.getExtras().getString(Constants.EXTRA_IMAGE_DATA );
-        Log.d(TAG, "handlePhotoTagResult: data: " + imageKeywords);
+        String userKeywords = data.getExtras().getString(Constants.EXTRA_IMAGE_DATA );
+        Log.d(TAG, "handlePhotoTagResult: data: " + userKeywords);
 
-        photoFileManager.setPhotoKeyWords(photoFileManager.getCurrentPhotoFile(), imageKeywords);
+        photoFileManager.setPhotoKeyWords(photoFileManager.getCurrentPhotoFile(), userKeywords);
     }
 
     private void handlePhotoCaptionResult(Intent data) {
-        String imageCaption = data.getExtras().getString(Constants.EXTRA_IMAGE_DATA );
-        Log.d(TAG, "handlePhotoCaptionResult: data: " + imageCaption);
+        String userCaption = data.getExtras().getString(Constants.EXTRA_IMAGE_DATA );
+        Log.d(TAG, "handlePhotoCaptionResult: data: " + userCaption);
 
-        photoFileManager.setPhotoCaption(photoFileManager.getCurrentPhotoFile(), imageCaption);
+        photoFileManager.setPhotoCaption(photoFileManager.getCurrentPhotoFile(), userCaption);
     }
 
     private void updateImageView(String imageFilename) {
@@ -284,7 +249,7 @@ public class MainActivity extends AppCompatActivity
         imageView.setImageBitmap(bitmap);
 
         // retrieve the caption for the new image
-        getCaptionFromImageFile(imageFilename);
+        getPhotoCaption(imageFilename);
         updateImageIndexText();
     }
 
@@ -310,9 +275,9 @@ public class MainActivity extends AppCompatActivity
         bitmap = BitmapFactory.decodeFile(filepath, bmOptions);
     }
 
-    private void getCaptionFromImageFile(String photoPath) {
+    private void getPhotoCaption(String photoFilename) {
         // retrieve the caption for the new image
-        String currentFileCaption = photoFileManager.getPhotoCaption(photoFileManager.getCurrentPhotoFile());
+        String currentFileCaption = photoFileManager.getPhotoCaption(photoFilename);
         ((TextView)findViewById(R.id.currentImageCaptionTextView)).setText((currentFileCaption == null ? "" : currentFileCaption));
     }
 
@@ -326,7 +291,6 @@ public class MainActivity extends AppCompatActivity
         }
         imageIndexTextView.setText(sb.toString());
     }
-
 
     @Override
     public boolean onTouchEvent(MotionEvent me) {
@@ -460,18 +424,6 @@ public class MainActivity extends AppCompatActivity
 
 
     /*
-     * hide the soft keyboard if it is displayed
-     */
-    private void hideSoftKeyboard() {
-        // Check if no view has focus:
-        View mview = this.getCurrentFocus();
-        if (mview != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(mview.getWindowToken(), 0);
-        }
-    }
-
-    /*
             LocationListener Interface Implementations
      */
 
@@ -479,40 +431,40 @@ public class MainActivity extends AppCompatActivity
     public void onLocationChanged(Location location) {
         Log.d("onLocationChanged","@@@ Location: lat[" + location.getLatitude()+ "] long[" + location.getLongitude()+ "]");
 
-        // experimental: get the location name from a gps location
-        Geocoder geo = new Geocoder(this);
-        String city= "Vancouver BC";
-        try {
-            List<Address> addressList = geo.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-            for (Address addr : addressList) {
-                Log.d("onLocationChanged", "addr1: " + addr.getLocality());
-                city = addr.getLocality();
-            }
-
-            // experimental: get the gps location from a location name
-            city= "10 downing st london";
-            if (city == null) {
-                Log.d("onLocationChanged", "TESTNOW: " + (city == null ? "is null" : city));
-
-            }
-            else {
-                Log.d("onLocationChanged", "TESTNOW: " + (city == null ? "is null" : city));
-                addressList = geo.getFromLocationName(city, 4);
-                for (Address addr : addressList) {
-                    Log.d("onLocationChanged", "By locationname: " +
-                            addr.getCountryName() + "\n" +
-                            addr.getLocality() + "\n" +
-                            addr.getSubLocality() + "\n" +
-                            addr.getThoroughfare() + "\n" +
-                            addr.getSubThoroughfare() + "\n" +
-                            addr.getPostalCode() + "\n\n" +
-                            addr.getLatitude() + " " + addr.getLongitude()
-                    );
-                }
-            }
-        } catch (IOException e) {
-            Log.d("onLocationChanged", "geo IOException " + e.getMessage());
-        }
+//        // experimental: get the location name from a gps location
+//        Geocoder geo = new Geocoder(this);
+//        String city= "Vancouver BC";
+//        try {
+//            List<Address> addressList = geo.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+//            for (Address addr : addressList) {
+//                Log.d("onLocationChanged", "addr1: " + addr.getLocality());
+//                city = addr.getLocality();
+//            }
+//
+//            // experimental: get the gps location from a location name
+//            city= "10 downing st london";
+//            if (city == null) {
+//                Log.d("onLocationChanged", "TESTNOW: " + (city == null ? "is null" : city));
+//
+//            }
+//            else {
+//                Log.d("onLocationChanged", "TESTNOW: " + (city == null ? "is null" : city));
+//                addressList = geo.getFromLocationName(city, 4);
+//                for (Address addr : addressList) {
+//                    Log.d("onLocationChanged", "By locationname: " +
+//                            addr.getCountryName() + "\n" +
+//                            addr.getLocality() + "\n" +
+//                            addr.getSubLocality() + "\n" +
+//                            addr.getThoroughfare() + "\n" +
+//                            addr.getSubThoroughfare() + "\n" +
+//                            addr.getPostalCode() + "\n\n" +
+//                            addr.getLatitude() + " " + addr.getLongitude()
+//                    );
+//                }
+//            }
+//        } catch (IOException e) {
+//            Log.d("onLocationChanged", "geo IOException " + e.getMessage());
+//        }
     }
 
     @Override
@@ -569,6 +521,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public PhotoFileManager getPhotoFileManagerForTest() {
+        // make available for Espresso testing
         return  photoFileManager;
     }
 
