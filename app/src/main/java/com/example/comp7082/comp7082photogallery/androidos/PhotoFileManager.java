@@ -155,6 +155,13 @@ public class PhotoFileManager {
         return ExifUtility.getExifTagString(currentFile, ExifUtility.EXIF_DATETIME_TAG);
     }
 
+    public float[] getPhotoGpsLocation(String workingPhotoFile) {
+        File currentFile = new File(workingPhotoFile);
+        float[] fileLocation = {0.0f, 0.0f};
+        boolean found = ExifUtility.getExifLatLong(currentFile, fileLocation);
+        return fileLocation;
+    }
+
     public String getCurrentFilePath() {
         if (photoList != null && photoList.length > 0) {
             return currentPhotoLocation + photoList[currentPhotoIndex];

@@ -30,10 +30,15 @@ import android.widget.Toast;
 
 import com.example.comp7082.comp7082photogallery.androidos.PhotoFileManager;
 import com.example.comp7082.comp7082photogallery.util.Constants;
+import com.example.comp7082.comp7082photogallery.util.PhotoSearch;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
         implements GestureDetector.OnGestureListener,
@@ -220,12 +225,67 @@ public class MainActivity extends AppCompatActivity
     private void handleSearchRequestResult(Intent data) {
         String[] filenames = data.getStringArrayExtra(Constants.EXTRA_PHOTO_LIST);
 
-        // search not found, return to full image list
-        if (filenames == null) {
+        PhotoSearch photoSearch = new PhotoSearch(photoFileManager);
+
+        String userKeywords = "cat";
+        boolean KeywordSearch = false;
+        boolean DateSearch = false;
+        boolean LocationSearch = false;
+        boolean GpsSearch = true;
+
+        Date userFromDate = null;
+        Date userToDate = null;
+        try {
+            userFromDate = new SimpleDateFormat("yyyy/MM/dd", Locale.US).parse("2019/10/12");
+            userToDate = new SimpleDateFormat("yyyy/MM/dd", Locale.US).parse("2019/10/12");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        String addressLocation =  "1500 Amphitheatre Pkwy Mountain View, CA";//"330 Main St Vancouver BC";
+
+        double[] swGpsCoord = {37.3680502, -122.029187};
+        double[] neGpsCoord = {37.4780502, -122.1391807};
+
+        boolean didSearch = false;
+        String[] resultSet = null;
+        if (KeywordSearch) {
+            resultSet = photoSearch.searchByKeyword(userKeywords);
+            didSearch = true;
+        }
+        if (DateSearch) {
+            if (!didSearch || (didSearch && resultSet != null)) {
+                resultSet = photoSearch.searchByDate(userFromDate, userToDate);
+            }
+            didSearch = true;
+        }
+        if (LocationSearch) {
+            if (!didSearch || (didSearch && resultSet != null)) {
+                photoSearch.setGeocoder(new Geocoder(this));
+                resultSet = photoSearch.searchByLocation(addressLocation);
+            }
+            didSearch = true;
+        }
+        if (GpsSearch) {
+            if (!didSearch || (didSearch && resultSet != null)) {
+                //photoSearch.setGeocoder(new Geocoder(this));
+                resultSet = photoSearch.searchByGpsBoxLocation(swGpsCoord, neGpsCoord);
+            }
+            didSearch = true;
+        }
+
+        if (resultSet != null) {
+            photoFileManager.setPhotoList(resultSet, PhotoFileManager.FIRST_ITEM);
+
+        }
+        if (!didSearch || resultSet == null) {
+//        if (filenames == null) {
+            // search not found, return to full image list
             photoFileManager.setPhotoList(
                     photoFileManager.getFilenames(photoFileManager.getPhotoLocation()),
                     PhotoFileManager.FIRST_ITEM);
         }
+//        String s = photoFileManager.getPhotoList()[0];
 
         updateImageView(photoFileManager.getCurrentPhotoFile());
     }
