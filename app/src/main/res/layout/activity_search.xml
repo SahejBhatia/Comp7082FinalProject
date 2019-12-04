@@ -34,7 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:text="@string/gpsNECoordPrompt"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gpsSWLatitudeTextEdit" />
@@ -151,46 +151,15 @@
         app:layout_constraintBaseline_toBaselineOf="@+id/searchPromptFrom"
         app:layout_constraintStart_toStartOf="@+id/toDateEditText" />
 
-    <EditText
-        android:id="@+id/fromTimeEditText"
-        android:layout_width="160dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:hint="@string/timeSearchTextHint"
-        android:inputType="time"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@+id/toTimeEditText"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fromDateEditText" />
-
-    <EditText
-        android:id="@+id/toTimeEditText"
-        android:layout_width="160dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
-        android:ems="10"
-        android:hint="@string/timeSearchTextHint"
-        android:inputType="time"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/fromTimeEditText"
-        app:layout_constraintTop_toBottomOf="@+id/toDateEditText" />
-
     <View
         android:id="@+id/divider"
         android:layout_width="wrap_content"
         android:layout_height="1dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toTimeEditText" />
+        app:layout_constraintTop_toBottomOf="@+id/fromDateEditText" />
 
     <EditText
         android:id="@+id/addressLocationEditText"
@@ -212,19 +181,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:text="@string/addressPrompt"
-        app:layout_constraintBottom_toBottomOf="@+id/locationSearchButton"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/locationSearchButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:onClick="locationSearchButtonOnClick"
-        android:text="@string/searchText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.925"
+        android:text="@string/addressPrompt"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider" />
 
@@ -286,7 +244,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:text="@string/latitudePrompt"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gpsSWCoordPrompt" />

@@ -248,11 +248,6 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
-        //String addressLocation =  "1500 Amphitheatre Pkwy Mountain View, CA";//"330 Main St Vancouver BC";
-
-//        double[] swGpsCoord = {37.3680502, -122.029187};
-//        double[] neGpsCoord = {37.4780502, -122.1391807};
-
         boolean didSearch = false;
         String[] resultSet = null;
         if (KeywordSearch) {
@@ -284,13 +279,12 @@ public class MainActivity extends AppCompatActivity
 
         }
         if (!didSearch || resultSet == null) {
-//        if (filenames == null) {
             // search not found, return to full image list
             photoFileManager.setPhotoList(
                     photoFileManager.getFilenames(photoFileManager.getPhotoLocation()),
                     PhotoFileManager.FIRST_ITEM);
+            Toast.makeText(this, "No matching photos found", Toast.LENGTH_SHORT).show();
         }
-//        String s = photoFileManager.getPhotoList()[0];
 
         updateImageView(photoFileManager.getCurrentPhotoFile());
     }
