@@ -82,8 +82,8 @@ public class EspressoTest {
     @Test
     public void B_ensureCaptionWorks() {
         onView(withId(R.id.button_caption_id)).perform(click());
-        onView(withId(R.id.edit_text1)).perform(typeText("camera icon test"), closeSoftKeyboard());
-        onView(withId(R.id.button_save_id)).perform(click());
+        onView(withId(R.id.contentDetailsEditText)).perform(typeText("camera icon test"), closeSoftKeyboard());
+        onView(withId(R.id.contentSetButton)).perform(click());
         onView(withId(R.id.currentImageCaptionTextView)).check(matches(withText("camera icon test")));
     }
 
