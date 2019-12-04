@@ -26,6 +26,8 @@ import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.example.comp7082.comp7082photogallery.androidos.ExifUtility;
+
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
@@ -45,7 +47,7 @@ public class EspressoTest {
 
     @Test
     public void A_CreateImage(){
-        String directoryString = activityRule.getActivity().directory;
+        String directoryString = activityRule.getActivity().getPhotoFileManagerForTest().getPhotoLocation();
         OutputStream fOutputStream;
 
         try {
@@ -80,17 +82,18 @@ public class EspressoTest {
     @Test
     public void B_ensureCaptionWorks() {
         onView(withId(R.id.button_caption_id)).perform(click());
-        onView(withId(R.id.edit_text1)).perform(typeText("camera icon test"), closeSoftKeyboard());
-        onView(withId(R.id.button_save_id)).perform(click());
+        onView(withId(R.id.contentDetailsEditText)).perform(typeText("camera icon test"), closeSoftKeyboard());
+        onView(withId(R.id.contentSetButton)).perform(click());
         onView(withId(R.id.currentImageCaptionTextView)).check(matches(withText("camera icon test")));
     }
 
     @Test
     public void C_ensureTagsWorks() {
-        String currentPhotoPath = activityRule.getActivity().currentPhotoPath;
-        onView(withId(R.id.button2)).perform(click());
-        onView(withId(R.id.editText)).perform(typeText("camera icon"), closeSoftKeyboard());
-        onView(withId(R.id.button)).perform(click());
+        //String currentPhotoPath = activityRule.getActivity().currentPhotoPath;
+        String currentPhotoPath = activityRule.getActivity().getPhotoFileManagerForTest().getCurrentFilePath();
+        onView(withId(R.id.button_tag_id)).perform(click());
+        onView(withId(R.id.contentDetailsEditText)).perform(typeText("camera icon"), closeSoftKeyboard());
+        onView(withId(R.id.contentSetButton)).perform(click());
 
         File localFile = new File(currentPhotoPath);
         String fileKeywordTags = ExifUtility.getExifTagString(localFile, ExifUtility.EXIF_KEYWORDS_TAG);
@@ -99,7 +102,7 @@ public class EspressoTest {
 
     @Test
     public void D_CreateSecondImage(){
-        String directoryString = activityRule.getActivity().directory;
+        String directoryString = activityRule.getActivity().getPhotoFileManagerForTest().getPhotoLocation();
         OutputStream fOutputStream;
 
         try {
@@ -146,7 +149,9 @@ public class EspressoTest {
         onView(withId(R.id.openSearchButton)).perform(click());
         onView(withId(R.id.tagSearchEditText)).perform(typeText("camera"), closeSoftKeyboard());
         onView(withId(R.id.searchButton)).perform(click());
-        int filenamesCount = activityRule.getActivity().filenames.length;
+//        int filenamesCount = activityRule.getActivity().filenames.length;
+        int filenamesCount = activityRule.getActivity().getPhotoFileManagerForTest().getPhotoList().length;
+
         assertEquals(filenamesCount, 1);
     }
 
@@ -156,7 +161,8 @@ public class EspressoTest {
         onView(withId(R.id.fromDateEditText)).perform(typeText("2019/10/01"), closeSoftKeyboard());
         onView(withId(R.id.toDateEditText)).perform(typeText("2019/10/31"), closeSoftKeyboard());
         onView(withId(R.id.searchButton)).perform(click());
-        int filenamesCount = activityRule.getActivity().filenames.length;
+//        int filenamesCount = activityRule.getActivity().filenames.length;
+        int filenamesCount = activityRule.getActivity().getPhotoFileManagerForTest().getPhotoList().length;
         assertEquals(filenamesCount, 2);
     }
 

@@ -10,72 +10,38 @@
         android:id="@+id/button_caption_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="4dp"
         android:layout_marginStart="8dp"
         android:onClick="onClickCaption"
         android:text="@string/captionButtonText"
-        app:layout_constraintEnd_toStartOf="@+id/currentImageCaptionTextView"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <EditText
-        android:id="@+id/edit_text1"
-        android:layout_width="0dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="96dp"
-        android:textSize="12sp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button_save_id"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/button_save_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:onClick="saveCaption"
-        android:text="@string/captionSave"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/edit_text1"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
 
     <TextView
         android:id="@+id/currentImageCaptionTextView"
-        android:layout_width="168dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp"
+        android:layout_width="0dp"
+        android:layout_height="34dp"
+        android:layout_margin="8dp"
         android:text=""
-        android:textAlignment="viewStart"
-        android:textSize="10sp"
-        app:layout_constraintBottom_toTopOf="@+id/imageView"
-        app:layout_constraintEnd_toStartOf="@+id/button2"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/button_caption_id"
-        app:layout_constraintTop_toTopOf="@+id/button_caption_id" />
+        android:textAlignment="center"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/cameraButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         android:contentDescription="@string/imageview"
-        app:layout_constraintBottom_toTopOf="@+id/edit_text1"
+        app:layout_constraintBottom_toTopOf="@+id/currentImageCaptionTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_caption_id"
+        app:layout_constraintTop_toBottomOf="@+id/imageIndexTextView"
         app:srcCompat="@android:color/darker_gray" />
 
     <ImageButton
@@ -84,39 +50,31 @@
         android:layout_height="68dp"
         android:layout_marginBottom="8dp"
         android:contentDescription="@string/camerabutton"
-        android:onClick="onSnapClicked"
+        android:onClick="onClickSnap"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edit_text1"
-        app:layout_constraintVertical_bias="1.0"
         app:srcCompat="@android:drawable/ic_menu_camera" />
 
     <Button
         android:id="@+id/openSearchButton"
-        android:layout_width="127dp"
+        android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="8dp"
-        android:onClick="openSearchOnClick"
+        android:layout_marginEnd="16dp"
+        android:onClick="OnClickSearch"
         android:text="@string/searchText"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@+id/edit_text1"
-        app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintBottom_toBottomOf="@+id/cameraButton"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/button_tag_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:onClick="addTag"
-        android:text="@string/Tag"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_margin="4dp"
+        android:onClick="onClickTags"
+        android:text="@string/tagButtonText"
+        app:layout_constraintBaseline_toBaselineOf="@+id/button_caption_id"
+        app:layout_constraintStart_toEndOf="@+id/button_caption_id" />
 
     <EditText
         android:id="@+id/imageIndexTextView"
@@ -124,12 +82,33 @@
         android:layout_height="35dp"
         android:layout_marginEnd="16dp"
         android:backgroundTint="@android:color/transparent"
-        android:ems="10"
+        android:ems="12"
         android:enabled="false"
+        android:importantForAutofill="no"
         android:inputType="textPersonName"
         android:textAlignment="textEnd"
-        android:textSize="10sp"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="@+id/imageView"
-        app:layout_constraintTop_toBottomOf="@+id/button2" />
+        app:layout_constraintTop_toBottomOf="@+id/imageButton2" />
+
+    <ImageButton
+        android:id="@+id/imageButton2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#00F3ECEC"
+        android:contentDescription="none"
+        android:onClick="ShareButton"
+        app:layout_constraintEnd_toEndOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="?attr/actionModeShareDrawable" />
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="Home View"
+        app:layout_constraintBottom_toBottomOf="@+id/cameraButton"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

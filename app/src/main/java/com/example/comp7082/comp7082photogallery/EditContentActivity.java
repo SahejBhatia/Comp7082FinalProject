@@ -8,18 +8,24 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
-public class addTag extends AppCompatActivity {
+import com.example.comp7082.comp7082photogallery.util.Constants;
 
-    private String fileName;
-    private EditText tag;
+public class EditContentActivity extends AppCompatActivity {
+
+    private EditText userEditText;
+    private TextView contentPromptTextView;
     private Intent intent;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
-        setContentView( R.layout.activity_add_tag );
+        setContentView( R.layout.activity_edit_content);
 
-        tag= findViewById( R.id.editText );
+        userEditText = findViewById( R.id.contentDetailsEditText);
+        contentPromptTextView = findViewById(R.id.contentPromptTextView);
+
 
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics( dm );
@@ -29,24 +35,29 @@ public class addTag extends AppCompatActivity {
         getWindow().setLayout( (int)(width *.8),(int)(height* .4) );
 
         intent = getIntent();
-//        fileName= intent.getStringExtra( "FileName" );
-//        System.out.println("from the second activity "+fileName);
-        String givenTags = intent.getStringExtra( MainActivity.EXTRA_KEYWORDS_TAG );
-        tag.setText(givenTags);
+        String currentData = intent.getStringExtra( Constants.EXTRA_IMAGE_DATA );
+        String contentTitle = intent.getStringExtra( "Title" );
+        String contentPrompt = intent.getStringExtra( "Prompt" );
+        String contentHint = intent.getStringExtra( "UserHint" );
+
+        contentPromptTextView.setText(contentPrompt);
+        userEditText.setText(currentData);
+        userEditText.setHint(contentHint);
+        this.setTitle(contentTitle);
 
 
     }
 
     public void SetTag(View view) {
 
-        if(tag.getText().toString().length() == 0 ){
+        if(userEditText.getText().toString().length() == 0 ){
 
             AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
-            builder1.setMessage("Please enter a tag.");
+            builder1.setMessage("Please " + this.getTitle().toString().toLowerCase());
             builder1.setCancelable(true);
 
             builder1.setPositiveButton(
-                    "ok",
+                    "OK",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             dialog.cancel();
@@ -55,9 +66,9 @@ public class addTag extends AppCompatActivity {
             AlertDialog alert11 = builder1.create();
             alert11.show();
         }else{
-        //sending back tag
+        //sending back userEditText
 
-            intent.putExtra(MainActivity.EXTRA_KEYWORDS_TAG, tag.getText().toString());
+            intent.putExtra(Constants.EXTRA_IMAGE_DATA, userEditText.getText().toString());
             setResult(RESULT_OK, intent);
             finish();
         }
