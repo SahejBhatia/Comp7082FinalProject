@@ -115,7 +115,7 @@
         android:id="@+id/imageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTint="#00F3F3F3"
+        android:backgroundTint="#2B2B2B"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/google"
         tools:layout_editor_absoluteX="276dp" />
