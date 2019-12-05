@@ -15,6 +15,7 @@ import android.location.LocationListener;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity
         LocationListener {
 
     private String TAG = MainActivity.class.getSimpleName();
+    public static final String storageLocation = Environment.getExternalStorageDirectory() + Constants.STORAGE_LOCATION;
 
     private TextView imageIndexTextView;
     public ImageView imageView;
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity
         gestureScanner = new GestureDetector(getBaseContext(), this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        photoFileManager = new PhotoFileManager();
+        photoFileManager = PhotoFileManager.getInstance(storageLocation);
 
         boolean swicthstate = toggle.isChecked();
         Toast.makeText( this, "ischecked?" + swicthstate, Toast.LENGTH_SHORT ).show();

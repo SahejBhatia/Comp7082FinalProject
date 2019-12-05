@@ -1,9 +1,6 @@
 package com.example.comp7082.comp7082photogallery.androidos;
 
-import android.os.Environment;
 import android.util.Log;
-
-import com.example.comp7082.comp7082photogallery.util.Constants;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,21 +11,23 @@ import java.util.Locale;
 public class PhotoFileManager {
     private String TAG = PhotoFileManager.class.getSimpleName();
 
-    public static final String storageLocation = Environment.getExternalStorageDirectory() + Constants.STORAGE_LOCATION;
+    // index position labels
     public static final int FIRST_ITEM = -1;
     public static final int LAST_ITEM = -2;
     public static final int SAME_ITEM = -3;
 
+    private static volatile PhotoFileManager instance;
 
     private String currentPhotoLocation; // the path to the photo folder
     private String[] photoList;
     private String currentPhotoFile;
     private int currentPhotoIndex;
 
-    public PhotoFileManager() {
-        this(storageLocation);
+    private  PhotoFileManager() {
+
     }
-    public PhotoFileManager(String photoLocation) {
+
+    private PhotoFileManager(String photoLocation) {
         currentPhotoIndex = 0;
         if (photoLocation != null && !photoLocation.isEmpty()) {
             currentPhotoLocation = photoLocation;
@@ -36,6 +35,18 @@ public class PhotoFileManager {
             setCurrentPhotoFile(currentPhotoIndex);
         }
     }
+
+    public static PhotoFileManager getInstance(String photoLocation) {
+        if (instance == null) {
+            synchronized (PhotoFileManager.class) {
+                if (instance == null) {
+                    instance = new PhotoFileManager(photoLocation);
+                }
+            }
+        }
+        return instance;
+    }
+
 
     public String getPhotoLocation() {
         return currentPhotoLocation;
