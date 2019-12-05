@@ -111,4 +111,23 @@
         app:layout_constraintBottom_toBottomOf="@+id/cameraButton"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#00F3F3F3"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/google"
+        tools:layout_editor_absoluteX="276dp" />
+
+    <ImageButton android:layout_height="37dp"
+        android:layout_width="41dp"
+        app:layout_constraintEnd_toStartOf="@+id/imageButton2"
+        android:onClick="googleSearch"
+        android:id="@+id/GoogleButton"
+        android:layout_marginEnd="10dp"
+        app:srcCompat="@drawable/google"
+        android:backgroundTint="#00F3ECEC"
+        tools:layout_editor_absoluteY="6dp"/>
+
 </android.support.constraint.ConstraintLayout>

@@ -31,6 +31,7 @@ public class Constants {
     public static final int REQUEST_IMAGE_SEARCH = 2;
     public static final int REQUEST_SET_TAG = 3;
     public static final int REQUEST_SET_CAPTION = 4;
+    public static final int REQUEST_VIEW_CATEGORY = 5;
 
     public static final String STORAGE_LOCATION = "/Android/data/" + ROOT_PACKAGE_NAME + "/files/Pictures/";
 }
